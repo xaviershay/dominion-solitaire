@@ -1,0 +1,20 @@
+--- Board ---------
+T0 8  Copper T3 8  Silver T6 8  Gold
+V2 8  Estate V5 8  Duchy  V8 8  Province
+V4 8  Gardens             Worth 1 VP per 10 cards in your deck, rounded down
+A2 8  Cellar          1   Discard X cards, +X cards            
+A2 8  Chapel              Trash <= 4 cards                              
+A3 8  Workshop            Gain a card <= 4                               
+A3 8  Chancellor        2 You may put your deck into your discard         
+A4 8  Mine                Trash a T, gain a T costing <= 3 more to your hand
+A4 8  Smithy         3                                                     
+A5 8  Council Room   4 1  Each other player draws a card               
+----------------------
++- Your Turn (1 Action, 1 Buy, 2 Treasure, 5 Deck)
+| Hand:   Copper, Copper, Estate, Council Room, Mine, Estate, Estate,
+|         Smithy
+| Played: Council Room
+| Bought: Mine
+|
+| 1 action left [Council Room]? C
+--------------------------
