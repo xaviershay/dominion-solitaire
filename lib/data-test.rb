@@ -5,7 +5,7 @@ module Dominion
     def generate_names!(cards)
       cards.each do |key, values|
         values[:key]  = key
-        values[:name] = key.to_s
+        values[:name] = key.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
       end
     end
 
@@ -89,6 +89,22 @@ class Game
         :type => :victory,
         :cost => 0},
         
+      :chapel => {
+        :type => :action,
+        :cost => 2,
+        :description => 'Trash <= 4 cards'},
+      :village => {
+        :type => :action,
+        :cost => 3,
+        :actions => 2,
+        :cards => 1},
+      :market => {
+        :type => :action,
+        :cost => 5,
+        :actions => 1,
+        :cards => 1,
+        :gold => 1,
+        :buys => 1},
       :cellar => {
         :type => :action,
         :cost => 2,
@@ -115,7 +131,10 @@ class Game
       [cards[:duchy]]  * 8,
       [cards[:provence]]  * 8,
       [cards[:curse]] * 30,
-      [cards[:cellar]]  * 8
+      [cards[:chapel]]  * 8,
+      [cards[:cellar]]  * 8,
+      [cards[:village]]  * 8,
+      [cards[:market]]  * 8
     ]
 
     @player = {
