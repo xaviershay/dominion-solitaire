@@ -13,6 +13,16 @@ module Dominion
       cards.each do |key, values|
         values[:key]  = key
         values[:name] = key.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
+
+        existing = values[:behaviour]
+        values[:behaviour] = lambda do |player, card|
+          player[:actions] += card[:actions].to_i
+          player[:buys]    += card[:buys].to_i
+          card[:cards].to_i.times do
+            draw_card(player)
+          end
+          existing[player, card] if existing
+        end
       end
     end
 
@@ -43,7 +53,13 @@ module Dominion
         player[:discard] = []
       end
 
-      player[:hand] << player[:deck].shift
+      player[:hand] << player[:deck].shift unless player[:deck].empty?
+    end
+
+    def buy_card(board, player, card_name)
+      pile = board.detect {|pile| pile[0][:name] == card_name.to_s }
+      player[:discard] << pile.shift
+      player[:buys] -= 1
     end
 
     def play_card(player, card_name)
@@ -54,6 +70,17 @@ module Dominion
       player[:actions] -= 1
 
       card[:behaviour][player, card]
+    end
+
+    def cleanup(board, player)
+      player[:discard] += player[:hand]
+      player[:discard] += player[:played]
+      player[:hand] = []
+      player[:played] = []
+      5.times { draw_card(player) }
+      player[:actions] = 1
+      player[:buys]    = 1
+      player[:gold]    = 0
     end
   end
 
@@ -71,7 +98,7 @@ class Game
   include Dominion::Player
   include Dominion::Input
 
-  attr_accessor :board, :cards, :player
+  attr_accessor :board, :cards, :player, :turn
 
   def initialize
     @cards = generate_names!({
@@ -122,7 +149,6 @@ class Game
         :actions => 1,
         :description => 'Discard X cards, draw X cards',
         :behaviour => lambda {|player, card|
-          player[:actions] += card[:actions]
 
           discard_count = 0
           #while discarded = prompt_player_for_card_in_hand(player, :prompt => "Choose a card to discard", :required => false) 
@@ -156,6 +182,7 @@ class Game
       :discard => [],
       :played  => [],
       :deck => randomize(
+        [cards[:village]] + 
         [cards[:cellar]] * 3 +
         [cards[:copper]] * 3 +
         [cards[:estate]] * 3
@@ -166,13 +193,15 @@ class Game
     #   )
     }
 
-    5.times { draw_card(@player) }
+    @turn = 1
+    cleanup(board, @player)
   end
 
   def treasure(player)
     player[:gold] + player[:hand].select {|x| 
       x[:type] == :treasure 
     }.map {|x|
+      raise x.inspect unless x[:gold]
       x[:gold] 
     }.inject {|a, b| 
       a + b 
@@ -194,6 +223,7 @@ class Game
     engine = Dominion::UI::NCurses.new
 
     while running
+      skip = false
       if player[:actions] > 0
         engine.card_active = lambda {|card| card[:type] == :action && player[:hand].include?(card)}
         engine.prompt = {
@@ -213,12 +243,38 @@ class Game
             engine.prompt = nil
           }
         }
+      elsif player[:buys] > 0
+        engine.card_active = lambda {|card| 
+          card[:cost] <= treasure(player)
+        }
+        engine.prompt = {
+          :prompt => "buy (#{player[:buys]} left)?",
+          :autocomplete => lambda {|input|
+            suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
+              x[:cost] <= treasure(player) && x[:name] =~ /^#{input}/i
+            }
+            suggest ? suggest[:name] : nil
+          },
+          :accept => lambda {|input|
+            if input
+              buy_card(board, player, input)
+            else
+              player[:buys] = 0
+            end
+            engine.prompt = nil
+          }
+        }
       else
-        running = false
+        # Run the cleanup phase
+        cleanup(board, player)
+        skip = true
+        @turn += 1
       end
 
-      ctx = engine.draw(self)
-      engine.step(ctx)
+      unless skip
+        ctx = engine.draw(self)
+        engine.step(ctx)
+      end
     end
   ensure
     engine.finalize if engine

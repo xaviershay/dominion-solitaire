@@ -75,7 +75,7 @@ class Dominion::UI::NCurses
           }[color] || raise("Unknown color: #{color}")
           wattr_set window, A_BOLD, color_index, nil
 
-          wprintw(window, text.to_s)
+          waddstr(window, text.to_s)
         end
         print_with_color = lambda do |color, text|
           color_index = {
@@ -90,7 +90,7 @@ class Dominion::UI::NCurses
           }[color] || raise("Unknown color: #{color}")
           wattr_set window, A_NORMAL, color_index, nil
 
-          wprintw(window, text.to_s)
+          waddstr(window, text.to_s)
         end
 
         type_char = {
@@ -147,10 +147,12 @@ class Dominion::UI::NCurses
         end
       end
     }, {
-      :title => "Your Turn (%i Action, %i Buy, %i Treasure, %i Deck)" % [
+      :title => "Turn %i (%i Action, %i Buy, %i Treasure, %i Discard, %i Deck)" % [
+        game.turn,
         game.player[:actions],
         game.player[:buys],
         game.treasure(game.player),
+        game.player[:discard].length,
         game.player[:deck].length
       ],
       :coords => [10, 80, 14, 0],
@@ -168,7 +170,7 @@ class Dominion::UI::NCurses
           }[color] || raise("Unknown color: #{color}")
           wattr_set window, A_BOLD, color_index, nil
 
-          wprintw(window, text.to_s)
+          waddstr(window, text.to_s)
         end
         print_with_color = lambda do |color, text|
           color_index = {
@@ -183,7 +185,7 @@ class Dominion::UI::NCurses
           }[color] || raise("Unknown color: #{color}")
           wattr_set window, A_NORMAL, color_index, nil
 
-          wprintw(window, text.to_s)
+          waddstr(window, text.to_s)
         end
         
         print_with_color[:white, "Hand: "]
@@ -216,7 +218,7 @@ class Dominion::UI::NCurses
           }[color] || raise("Unknown color: #{color}")
           wattr_set window, A_NORMAL, color_index, nil
 
-          wprintw(window, text.to_s)
+          waddstr(window, text.to_s)
         end
 
         if prompt
