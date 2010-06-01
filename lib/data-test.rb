@@ -1,4 +1,11 @@
 require 'ffi-ncurses'
+require File.dirname(__FILE__) + '/ui'
+
+def log(message)
+  @log ||= File.open('debug.log', 'a')
+  @log.puts message
+  @log.flush
+end
 
 module Dominion
   module Util
@@ -44,6 +51,7 @@ module Dominion
 
       player[:hand].delete_at(player[:hand].index(card))
       player[:played] << card
+      player[:actions] -= 1
 
       card[:behaviour][player, card]
     end
@@ -78,12 +86,15 @@ class Game
         :cost => 8},
       :copper => {
         :type => :treasure,
+        :gold => 1,
         :cost => 0},
       :silver => {
         :type => :treasure,
+        :gold => 2,
         :cost => 3},
       :gold => {
         :type => :treasure,
+        :gold => 3,
         :cost => 6},
       :curse => {
         :type => :victory,
@@ -114,10 +125,10 @@ class Game
           player[:actions] += card[:actions]
 
           discard_count = 0
-          while discarded = prompt_player_for_card_in_hand(player, :prompt => "Choose a card to discard", :required => false) 
-            discard_count += 1
-          end
-          discard_count.times { draw_card(player) }
+          #while discarded = prompt_player_for_card_in_hand(player, :prompt => "Choose a card to discard", :required => false) 
+          #  discard_count += 1
+          #end
+          #discard_count.times { draw_card(player) }
         }},
 
       :end => {}
@@ -138,13 +149,15 @@ class Game
     ]
 
     @player = {
-      :current_input => '',
       :actions => 1,
+      :buys => 1,
+      :gold => 0,
       :hand    => [],
       :discard => [],
       :played  => [],
       :deck => randomize(
-        [cards[:cellar]] * 5 +
+        [cards[:cellar]] * 3 +
+        [cards[:copper]] * 3 +
         [cards[:estate]] * 3
       )
     #   :deck    => randomize(
@@ -154,6 +167,16 @@ class Game
     }
 
     5.times { draw_card(@player) }
+  end
+
+  def treasure(player)
+    player[:gold] + player[:hand].select {|x| 
+      x[:type] == :treasure 
+    }.map {|x|
+      x[:gold] 
+    }.inject {|a, b| 
+      a + b 
+    }
   end
 
   def test
@@ -167,232 +190,40 @@ class Game
   end
   
   def run
-    painter = Painter.new
-    begin
-      running = true
-      while running == true
+    running = true
+    engine = Dominion::UI::NCurses.new
 
-
-        player[:prompt] = {
-          :prompt => '?',
+    while running
+      if player[:actions] > 0
+        engine.card_active = lambda {|card| card[:type] == :action && player[:hand].include?(card)}
+        engine.prompt = {
+          :prompt => "action (#{player[:actions]} left)?",
           :autocomplete => lambda {|input|
             suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-              x[:name] =~ /^#{input}/i
+              x[:type] == :action && x[:name] =~ /^#{input}/i
             }
             suggest ? suggest[:name] : nil
           },
           :accept => lambda {|input|
-            running = false
+            if input
+              play_card(player, input)
+            else
+              player[:actions] = 0
+            end
+            engine.prompt = nil
           }
         }
-        ctx = painter.draw(self)
-        ch = painter.wait_for_input(ctx)
-        case ch
-        when 10
-          player[:prompt][:accept][player[:current_input]]
-        when 127
-          player[:current_input] = player[:current_input][0..-2]
-        else
-          player[:current_input] += ch.chr
-        end
-      end
-    ensure
-      painter.finalize
-    end
-  end
-
-  class Painter
-    include FFI::NCurses
-
-    def initialize
-      initscr
-      start_color
-      noecho
-  
-      # set up colour pairs
-      #             Background       Foreground
-      init_pair(0,  Colour::BLACK,   Colour::BLACK)
-      init_pair(1,  Colour::RED,     Colour::BLACK)
-      init_pair(2,  Colour::GREEN,   Colour::BLACK)
-      init_pair(3,  Colour::YELLOW,  Colour::BLACK)
-      init_pair(4,  Colour::BLUE,    Colour::BLACK)
-      init_pair(5,  Colour::MAGENTA, Colour::BLACK)
-      init_pair(6,  Colour::CYAN,    Colour::BLACK)
-      init_pair(7,  Colour::WHITE,   Colour::BLACK)
-
-      init_pair(8,  Colour::BLACK,   Colour::BLACK)
-      init_pair(9,  Colour::BLACK,   Colour::RED)
-      init_pair(10, Colour::BLACK,   Colour::GREEN)
-      init_pair(11, Colour::BLACK,   Colour::YELLOW)
-      init_pair(12, Colour::BLACK,   Colour::BLUE)
-      init_pair(13, Colour::BLACK,   Colour::MAGENTA)
-      init_pair(14, Colour::BLACK,   Colour::CYAN)
-      init_pair(15, Colour::BLACK,   Colour::WHITE)
-    end
-
-    def wait_for_input(ctx)
-      wgetch(ctx)
-    end
-
-    def finalize
-      endwin
-    end
-
-    def draw(game)
-      curs_set 0
-     
-      drawn = [{
-        :coords => [14, 80, 0, 0],
-        :title  => 'Board',
-        :draw   => lambda do |window, game|
-          print_with_color = lambda do |color, text|
-            color_index = {
-              :white        => 7,
-              :yellow       => 3,
-              :blue         => 4,
-              :red          => 1,
-              :cyan_back    => 14,
-              :green_back   => 10,
-              :magenta_back => 13,
-              :yellow_back  => 11
-            }[color] || raise("Unknown color: #{color}")
-            wattr_set window, A_NORMAL, color_index, nil
-
-            wprintw(window, text.to_s)
-          end
-
-          type_char = {
-            :treasure => 'T',
-            :action   => 'A',
-            :victory  => 'V'
-          }
-
-          max_name_length = game.board.map {|pile| pile[0][:name].length }.max
-          
-          header, body = game.board.partition {|x|
-            [
-              :copper,
-              :silver,
-              :gold,
-              :estate,
-              :duchy,
-              :provence,
-              :curse
-            ].include?(x.first[:key])
-          }
-
-          header.each_with_index do |pile, i|
-            card = pile.first
-
-            print_with_color[:white, ' '] if i > 0
-            print_with_color[:yellow, card[:cost]]
-            print_with_color[:red,    type_char[card[:type]]]
-            print_with_color[:blue,   pile.size]
-            print_with_color[:white,  " %s" % card[:name]]
-          end
-
-          print_with_color[:white, "\n"]
-
-          body.each do |pile|
-            card = pile.first
-
-            print_with_color[:white, ' ']
-            print_with_color[:yellow, card[:cost]]
-            print_with_color[:red,    type_char[card[:type]]]
-            print_with_color[:blue,   '%-2i' % pile.size]
-            print_with_color[:white,  " %-#{max_name_length}s " % card[:name]]
-
-            print_with_color[:cyan_back,    card[:cards] || ' ']
-            print_with_color[:green_back,   card[:actions] || ' ']
-            print_with_color[:magenta_back, card[:buys] || ' ']
-            print_with_color[:yellow_back,  card[:gold] || ' ']
-
-            print_with_color[:white,  " %-#{max_name_length}s\n" % card[:description]]
-          end
-        end
-      }, {
-        :title => 'Your Turn',
-        :coords => [10, 80, 14, 0],
-        :draw => lambda do |window, game|
-          print = lambda do |text|
-            wprintw(window, text.to_s)
-          end
-          print["Hand: %s\n" % game.player[:hand].map {|x| x[:name] }.join(", ")]
-
-        end
-      }, {
-        :coords => [1, 80, 24, 0],
-        :border => false,
-        :draw => lambda do |window, game|
-          print_with_color = lambda do |color, text|
-            color_index = {
-              :white        => 7,
-              :yellow       => 3,
-              :blue         => 4,
-              :red          => 1,
-              :cyan_back    => 14,
-              :green_back   => 10,
-              :magenta_back => 13,
-              :yellow_back  => 11
-            }[color] || raise("Unknown color: #{color}")
-            wattr_set window, A_NORMAL, color_index, nil
-
-            wprintw(window, text.to_s)
-          end
-
-          if game.player[:prompt]
-            #print_with_color[:yellow_back, "%-80s" % ""]
-
-            input = game.player[:current_input]
-            suggest = game.player[:prompt][:autocomplete][input].to_s
-
-            print_with_color[:yellow_back, "%s %s" % [
-              game.player[:prompt][:prompt],
-              input]]
-
-            fill = suggest[input.length..-1]
-
-            if fill && fill.length > 0
-              print_with_color[:red, "%s" % fill]
-            end
-          else
-            print_with_color[:green_back, "%-80s" % ""]
-          end
-        end
-      }].map do |window|
-        window[:border] = true unless window.has_key?(:border)
-
-        c = window[:coords]
-        board_frame = newwin(*c)
-
-        if window[:border]
-          board = newwin(c[0] - 2, c[1] - 2, c[2] + 1, c[3] + 1)
-
-          window[:draw][board, game]
-
-          wattr_set board_frame, A_NORMAL, 7, nil
-          box(board_frame, c[2], c[3])
-          wmove(board_frame, 0, 2)
-          waddstr(board_frame, "| #{window[:title]} |")
-          wrefresh(board_frame)
-          wrefresh(board)
-          {
-            :frame => board_frame,
-            :inner => board
-          }
-        else
-          window[:draw][board_frame, game]
-          wrefresh(board_frame)
-          {
-            :frame => nil,
-            :inner => board_frame
-          }
-        end
+      else
+        running = false
       end
 
-      drawn[0][:inner]
+      ctx = engine.draw(self)
+      engine.step(ctx)
     end
+  ensure
+    engine.finalize if engine
   end
+
 end
 
 Game.new.run
