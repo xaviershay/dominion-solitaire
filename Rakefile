@@ -6,3 +6,8 @@ Spec::Rake::SpecTask.new do |t|
 end
 
 task :default => :spec
+
+desc "Run the game"
+task :run do
+  exec('ruby lib/run.rb')
+end
