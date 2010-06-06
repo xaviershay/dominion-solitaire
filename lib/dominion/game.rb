@@ -205,13 +205,9 @@ class Game
       :trash   => [],
       :played  => [],
       :deck => randomize(
-        [cards[:cellar]] * 3 +
-        [cards[:copper]] * 3
+        [cards[:estate]] * 3 +
+        [cards[:copper]] * 7
       )
-    #   :deck    => randomize(
-    #     [cards[:copper]] * 7 +
-    #     [cards[:estate]] * 3
-    #   )
     }
 
   end

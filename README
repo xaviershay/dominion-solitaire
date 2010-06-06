@@ -1,0 +1,13 @@
+= Dominion Solitaire
+An ncurses Dominion implementation with a focus on lightning quick goldfishing. 
+You play cards by typing their name with smart autocomplete.
+It's a WIP - logic is there to play the game, but virtually no card logic exists yet (i.e there's no cards).
+
+== Running
+
+I haven't totally automated some ncurses stuff yet - you may need the following env settings to get things working
+
+    ls /usr/lib/ | grep libncurses         # Find your libncurses .dylib
+    export RUBY_FFI_NCURSES_LIB=libncurses # Tell ffi-ncurses to use the right one
+
+    rake run
