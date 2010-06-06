@@ -8,6 +8,6 @@ end
 
 require 'dominion/game'
 
-game = Game.new
+game = Dominion::Game.new
 game.load_all_cards
 game.run

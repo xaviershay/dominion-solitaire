@@ -1,4 +1,4 @@
-CARDS[:chapel] = {
+Dominion::CARDS[:chapel] = {
   :type        => :action,
   :cost        => 2,
   :description => 'Trash <= 4 cards',

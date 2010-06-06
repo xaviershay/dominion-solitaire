@@ -1,4 +1,4 @@
-CARDS[:cellar] = {
+Dominion::CARDS[:cellar] = {
   :type        => :action,
   :cost        => 2,
   :actions     => 1,

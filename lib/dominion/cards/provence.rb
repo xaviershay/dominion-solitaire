@@ -1,4 +1,4 @@
-CARDS[:provence] = {
+Dominion::CARDS[:provence] = {
   :type => :victory,
   :cost => 8
 }

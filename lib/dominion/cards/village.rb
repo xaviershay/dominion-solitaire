@@ -1,4 +1,4 @@
-CARDS[:village] = {
+Dominion::CARDS[:village] = {
   :type    => :action,
   :cost    => 3,
   :actions => 2,

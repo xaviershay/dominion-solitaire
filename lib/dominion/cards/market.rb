@@ -1,4 +1,4 @@
-CARDS[:market] = {
+Dominion::CARDS[:market] = {
   :type    => :action,
   :cost    => 5,
   :actions => 1,
