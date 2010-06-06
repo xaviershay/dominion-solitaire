@@ -97,9 +97,15 @@ module Dominion
   end
 
   module Input
-    def prompt_player_for_card_in_hand(player, opts)
-      puts opts[:prompt]
-      nil
+    class Autocomplete
+      def self.cards_in_hand(game)
+        lambda {|input|
+          suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
+            x[:name] =~ /^#{input}/i
+          }
+          suggest ? suggest[:name] : nil
+        }
+      end
     end
   end
 end

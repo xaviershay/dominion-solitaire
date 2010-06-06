@@ -7,12 +7,7 @@ CARDS[:chapel] = {
     max_trash = 4
     game.engine.prompt = {
       :prompt => "trash (#{max_trash - trash_count} left)?",
-      :autocomplete => lambda {|input|
-        suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
-          x[:name] =~ /^#{input}/i
-        }
-        suggest ? suggest[:name] : nil
-      },
+      :autocomplete => Dominion::Input::Autocomplete.cards_in_hand(game),
       :accept => lambda {|input|
         if input
           game.trash_card(game.player, input)
