@@ -1,10 +1,12 @@
+require 'ffi-ncurses'
+
 module Dominion; module UI; end; end;
 class Dominion::UI::NCurses
   include FFI::NCurses
 
   attr_accessor :prompt, :input_buffer, :card_active
 
-  def initialize
+  def setup
     self.prompt = nil
     self.input_buffer = ''
 

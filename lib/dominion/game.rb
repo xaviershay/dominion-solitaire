@@ -1,11 +1,4 @@
-require 'ffi-ncurses'
-require File.dirname(__FILE__) + '/ui'
-
-def log(message)
-  @log ||= File.open('debug.log', 'a')
-  @log.puts message
-  @log.flush
-end
+require 'dominion/ui'
 
 module Dominion
   module Util
@@ -14,13 +7,13 @@ module Dominion
       values[:name] = name.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
 
       existing = values[:behaviour]
-      values[:behaviour] = lambda do |player, card|
-        player[:actions] += card[:actions].to_i
-        player[:buys]    += card[:buys].to_i
+      values[:behaviour] = lambda do |game, card|
+        game.player[:actions] += card[:actions].to_i
+        game.player[:buys]    += card[:buys].to_i
         card[:cards].to_i.times do
-          draw_card(player)
+          draw_card(game.player)
         end
-        existing[player, card] if existing
+        existing[game, card] if existing
       end
       values
     end
@@ -74,11 +67,11 @@ module Dominion
       player[:played] << card
       player[:actions] -= 1
 
-      card[:behaviour][player, card]
+      card[:behaviour][self, card]
     end
 
     def discard_card(player, card_name)
-      card = player[:hand].detect {|x| x[:name] == card_name.to_s } 
+      card = player[:hand].detect {|x| x[:name].downcase == card_name.to_s.downcase } 
 
       player[:hand].delete_at(player[:hand].index(card))
       player[:discard] << card
@@ -162,6 +155,8 @@ class Game
      })
 
     @turn = 1
+
+    self.engine = Dominion::UI::NCurses.new
   end
 
   def player
@@ -205,8 +200,7 @@ class Game
     cards[key] || raise("No card #{key}")
   end
 
-  def add_card(key, &block)
-    values = instance_eval(&block)
+  def add_card(key, values)
     @cards[key] = add_defaults_to_card(key, values)
   end
 
@@ -234,8 +228,8 @@ class Game
   attr_accessor :engine
   def run
     cleanup(board, player)
+    engine.setup
     running = true
-    self.engine = Dominion::UI::NCurses.new
 
     while running
       skip = false
@@ -300,10 +294,13 @@ class Game
   def self.instance
     @instance ||= new
   end
+
+  def load_cards(*args)
+    args.each do |c|
+      require File.dirname(__FILE__) + "/cards/#{c}"
+      add_card(c, CARDS[c])
+    end
+  end
 end
 
-require File.dirname(__FILE__) + '/cards/chapel'
-require File.dirname(__FILE__) + '/cards/cellar'
-require File.dirname(__FILE__) + '/ui'
-
-Game.instance.run
+CARDS = {}
