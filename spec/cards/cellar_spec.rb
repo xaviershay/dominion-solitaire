@@ -15,20 +15,25 @@ describe_card :cellar  do
     end
   end
 
-  describe 'when I discard 4 cards' do
+  describe 'when I discard X cards' do
+    let(:x) { 2 }
+
     before do
-      deck cards(:copper, 4)
-      hand cards(:estate, 4)
+      deck cards(:copper, x)
+      hand cards(:estate, x + 1)
 
       playing_card(subject) do
-        4.times { input 'estate' }
+        x.times {
+          game.should have_prompt_with_autocomplete(:cards_in_hand)
+          input 'estate'
+        }
+        game.should have_prompt_with_autocomplete(:cards_in_hand)
       end
     end
 
-    it 'draws 4 cards' do
-      game.should_not have_prompt
-      hand.should     have_cards(cards(:copper, 4))
-      deck.should     be_empty
+    it 'draws X cards' do
+      hand.should have_cards(cards(:copper, x) + cards(:estate, 1))
+      deck.should be_empty
     end
   end
 end

@@ -1,8 +1,8 @@
 CARDS[:chapel] = {
-  :type => :action,
-  :cost => 2,
+  :type        => :action,
+  :cost        => 2,
   :description => 'Trash <= 4 cards',
-  :behaviour => lambda {|game, card|
+  :behaviour   => lambda {|game, card|
     trash_count = 0
     max_trash = 4
     game.engine.prompt = {

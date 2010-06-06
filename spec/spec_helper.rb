@@ -3,6 +3,28 @@ require 'spec'
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'dominion/game'
 
+Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
+  match do |game|
+    game.engine.prompt
+      # TODO: Check auto complete
+    begin
+      old_player = game.player.dup
+
+      game.player[:deck] = [game.card(:estate)]
+      game.player[:hand] = [game.card(:copper)]
+      game.engine.prompt[:autocomplete]['co'].should == 'Copper'
+      game.engine.prompt[:autocomplete]['es'].should == nil
+      game.engine.prompt[:autocomplete]['ce'].should == nil
+    ensure
+      game.player = old_player
+    end
+  end
+
+  failure_message_for_should do |game|
+    "expected a prompt with autocomplete strategy :#{autocomplete_strategy}"
+  end
+end
+
 Spec::Matchers.define :have_prompt do
   match do |game|
     game.engine.prompt
@@ -51,7 +73,7 @@ module CardMacros
   def playing_card(card)
     card[:behaviour][@game, subject]
     yield if block_given?
-    input nil
+    input ''
   end
 
   def deck(cards = nil)
