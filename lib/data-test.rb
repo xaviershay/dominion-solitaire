@@ -72,6 +72,13 @@ module Dominion
       card[:behaviour][player, card]
     end
 
+    def discard_card(player, card_name)
+      card = player[:hand].detect {|x| x[:name] == card_name.to_s } 
+
+      player[:hand].delete_at(player[:hand].index(card))
+      player[:discard] << card
+    end
+
     def cleanup(board, player)
       player[:discard] += player[:hand]
       player[:discard] += player[:played]
@@ -149,12 +156,34 @@ class Game
         :actions => 1,
         :description => 'Discard X cards, draw X cards',
         :behaviour => lambda {|player, card|
-
           discard_count = 0
-          #while discarded = prompt_player_for_card_in_hand(player, :prompt => "Choose a card to discard", :required => false) 
-          #  discard_count += 1
-          #end
-          #discard_count.times { draw_card(player) }
+          max_discard = 4
+          engine.prompt = {
+            :prompt => "discard (#{max_discard - discard_count} left)?",
+            :autocomplete => lambda {|input|
+              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
+                x[:name] =~ /^#{input}/i
+              }
+              suggest ? suggest[:name] : nil
+            },
+            :accept => lambda {|input|
+              if input
+                discard_card(player, input)
+                discard_count += 1
+                engine.prompt[:prompt] = "discard (#{max_discard - discard_count} left)?",
+
+                if discard_count >= max_discard
+                  engine.prompt = nil
+                end
+              else
+                engine.prompt = nil
+              end
+
+              unless engine.prompt
+                discard_count.times { draw_card(player) }
+              end
+            }
+          }
         }},
 
       :end => {}
@@ -182,10 +211,8 @@ class Game
       :discard => [],
       :played  => [],
       :deck => randomize(
-        [cards[:village]] + 
         [cards[:cellar]] * 3 +
-        [cards[:copper]] * 3 +
-        [cards[:estate]] * 3
+        [cards[:copper]] * 3
       )
     #   :deck    => randomize(
     #     [cards[:copper]] * 7 +
@@ -218,57 +245,60 @@ class Game
     pp player
   end
   
+  attr_accessor :engine
   def run
     running = true
-    engine = Dominion::UI::NCurses.new
+    self.engine = Dominion::UI::NCurses.new
 
     while running
       skip = false
-      if player[:actions] > 0
-        engine.card_active = lambda {|card| card[:type] == :action && player[:hand].include?(card)}
-        engine.prompt = {
-          :prompt => "action (#{player[:actions]} left)?",
-          :autocomplete => lambda {|input|
-            suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-              x[:type] == :action && x[:name] =~ /^#{input}/i
+      if engine.prompt.nil?
+        if player[:actions] > 0
+          engine.card_active = lambda {|card| card[:type] == :action && player[:hand].include?(card)}
+          engine.prompt = {
+            :prompt => "action (#{player[:actions]} left)?",
+            :autocomplete => lambda {|input|
+              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
+                x[:type] == :action && x[:name] =~ /^#{input}/i
+              }
+              suggest ? suggest[:name] : nil
+            },
+            :accept => lambda {|input|
+              engine.prompt = nil
+              if input
+                play_card(player, input)
+              else
+                player[:actions] = 0
+              end
             }
-            suggest ? suggest[:name] : nil
-          },
-          :accept => lambda {|input|
-            if input
-              play_card(player, input)
-            else
-              player[:actions] = 0
-            end
-            engine.prompt = nil
           }
-        }
-      elsif player[:buys] > 0
-        engine.card_active = lambda {|card| 
-          card[:cost] <= treasure(player)
-        }
-        engine.prompt = {
-          :prompt => "buy (#{player[:buys]} left)?",
-          :autocomplete => lambda {|input|
-            suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-              x[:cost] <= treasure(player) && x[:name] =~ /^#{input}/i
+        elsif player[:buys] > 0
+          engine.card_active = lambda {|card| 
+            card[:cost] <= treasure(player)
+          }
+          engine.prompt = {
+            :prompt => "buy (#{player[:buys]} left)?",
+            :autocomplete => lambda {|input|
+              suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
+                x[:cost] <= treasure(player) && x[:name] =~ /^#{input}/i
+              }
+              suggest ? suggest[:name] : nil
+            },
+            :accept => lambda {|input|
+              if input
+                buy_card(board, player, input)
+              else
+                player[:buys] = 0
+              end
+              engine.prompt = nil
             }
-            suggest ? suggest[:name] : nil
-          },
-          :accept => lambda {|input|
-            if input
-              buy_card(board, player, input)
-            else
-              player[:buys] = 0
-            end
-            engine.prompt = nil
           }
-        }
-      else
-        # Run the cleanup phase
-        cleanup(board, player)
-        skip = true
-        @turn += 1
+        else
+          # Run the cleanup phase
+          cleanup(board, player)
+          skip = true
+          @turn += 1
+        end
       end
 
       unless skip
