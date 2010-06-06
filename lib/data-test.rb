@@ -9,20 +9,25 @@ end
 
 module Dominion
   module Util
+    def add_defaults_to_card(name, values)
+      values[:key]  = name
+      values[:name] = name.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
+
+      existing = values[:behaviour]
+      values[:behaviour] = lambda do |player, card|
+        player[:actions] += card[:actions].to_i
+        player[:buys]    += card[:buys].to_i
+        card[:cards].to_i.times do
+          draw_card(player)
+        end
+        existing[player, card] if existing
+      end
+      values
+    end
+
     def generate_names!(cards)
       cards.each do |key, values|
-        values[:key]  = key
-        values[:name] = key.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
-
-        existing = values[:behaviour]
-        values[:behaviour] = lambda do |player, card|
-          player[:actions] += card[:actions].to_i
-          player[:buys]    += card[:buys].to_i
-          card[:cards].to_i.times do
-            draw_card(player)
-          end
-          existing[player, card] if existing
-        end
+        add_defaults_to_card(key, values)
       end
     end
 
@@ -140,37 +145,6 @@ class Game
       :curse => {
         :type => :victory,
         :cost => 0},
-        
-      :chapel => {
-        :type => :action,
-        :cost => 2,
-        :description => 'Trash <= 4 cards',
-        :behaviour => lambda {|player, card|
-          trash_count = 0
-          max_trash = 4
-          engine.prompt = {
-            :prompt => "trash (#{max_trash - trash_count} left)?",
-            :autocomplete => lambda {|input|
-              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-                x[:name] =~ /^#{input}/i
-              }
-              suggest ? suggest[:name] : nil
-            },
-            :accept => lambda {|input|
-              if input
-                trash_card(player, input)
-                trash_count += 1
-                engine.prompt[:prompt] = "trash (#{max_trash - trash_count} left)?",
-
-                if trash_count >= max_trash
-                  engine.prompt = nil
-                end
-              else
-                engine.prompt = nil
-              end
-            }
-          }
-        }},
       :village => {
         :type => :action,
         :cost => 3,
@@ -183,55 +157,15 @@ class Game
         :cards => 1,
         :gold => 1,
         :buys => 1},
-      :cellar => {
-        :type => :action,
-        :cost => 2,
-        :actions => 1,
-        :description => 'Discard X cards, draw X cards',
-        :behaviour => lambda {|player, card|
-          discard_count = 0
-          engine.prompt = {
-            :prompt => "discard (#{discard_count} so far)?",
-            :autocomplete => lambda {|input|
-              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-                x[:name] =~ /^#{input}/i
-              }
-              suggest ? suggest[:name] : nil
-            },
-            :accept => lambda {|input|
-              if input
-                discard_card(player, input)
-                discard_count += 1
-                engine.prompt[:prompt] = "discard (#{discard_count} so far)?"
-              else
-                engine.prompt = nil
-              end
-
-              unless engine.prompt
-                discard_count.times { draw_card(player) }
-              end
-            }
-          }
-        }},
 
       :end => {}
      })
 
-    @board = [
-      [cards[:copper]] * 60,
-      [cards[:silver]] * 40,
-      [cards[:gold]] * 30,
-      [cards[:estate]] * 8,
-      [cards[:duchy]]  * 8,
-      [cards[:provence]]  * 8,
-      [cards[:curse]] * 30,
-      [cards[:chapel]]  * 8,
-      [cards[:cellar]]  * 8,
-      [cards[:village]]  * 8,
-      [cards[:market]]  * 8
-    ]
+    @turn = 1
+  end
 
-    @player = {
+  def player
+    @player ||= {
       :actions => 1,
       :buys => 1,
       :gold => 0,
@@ -249,8 +183,31 @@ class Game
     #   )
     }
 
-    @turn = 1
-    cleanup(board, @player)
+  end
+
+  def board
+    @board ||= [
+      [card(:copper)] * 60,
+      [card(:silver)] * 40,
+      [card(:gold)] * 30,
+      [card(:estate)] * 8,
+      [card(:duchy)]  * 8,
+      [card(:provence)]  * 8,
+      [card(:curse)] * 30,
+      [card(:chapel)]  * 8,
+      [card(:cellar)]  * 8,
+      [card(:village)]  * 8,
+      [card(:market)]  * 8
+    ]
+  end
+
+  def card(key)
+    cards[key] || raise("No card #{key}")
+  end
+
+  def add_card(key, &block)
+    values = instance_eval(&block)
+    @cards[key] = add_defaults_to_card(key, values)
   end
 
   def treasure(player)
@@ -276,6 +233,7 @@ class Game
   
   attr_accessor :engine
   def run
+    cleanup(board, player)
     running = true
     self.engine = Dominion::UI::NCurses.new
 
@@ -339,6 +297,13 @@ class Game
     engine.finalize if engine
   end
 
+  def self.instance
+    @instance ||= new
+  end
 end
 
-Game.new.run
+require File.dirname(__FILE__) + '/cards/chapel'
+require File.dirname(__FILE__) + '/cards/cellar'
+require File.dirname(__FILE__) + '/ui'
+
+Game.instance.run

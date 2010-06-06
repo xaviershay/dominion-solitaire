@@ -99,7 +99,9 @@ class Dominion::UI::NCurses
           :victory  => 'V'
         }
 
-        max_name_length = game.board.map {|pile| pile[0][:name].length }.max
+        max_name_length = game.board.map {|pile| 
+          pile[0][:name].length 
+        }.max
         
         header, body = game.board.partition {|x|
           [
@@ -122,9 +124,7 @@ class Dominion::UI::NCurses
           print_with_color[:blue,   pile.size]
           print_with_color[:white,  " %s" % card[:name]]
         end
-
-        print_with_color[:white, "\n"]
-
+print_with_color[:white, "\n"] 
         body.each do |pile|
           card = pile.first
 
