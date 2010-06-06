@@ -6,14 +6,17 @@ module Dominion
       values[:key]  = name
       values[:name] = name.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
 
-      existing = values[:behaviour]
-      values[:behaviour] = lambda do |game, card|
-        game.player[:actions] += card[:actions].to_i
-        game.player[:buys]    += card[:buys].to_i
-        card[:cards].to_i.times do
-          draw_card(game.player)
+      if values[:type] == :action
+        existing = values[:behaviour]
+        values[:behaviour] = lambda do |game, card|
+          game.player[:actions] += card[:actions].to_i
+          game.player[:buys]    += card[:buys].to_i
+          game.player[:gold]    += card[:gold].to_i
+          card[:cards].to_i.times do
+            draw_card(game.player)
+          end
+          existing[game, card] if existing
         end
-        existing[game, card] if existing
       end
       values
     end
@@ -165,7 +168,7 @@ module Dominion
         :played  => [],
         :deck => randomize(
           [cards[:estate]] * 3 +
-          [cards[:copper]] * 7
+          [cards[:market]] * 7
         )
       }
 
