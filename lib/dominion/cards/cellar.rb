@@ -3,24 +3,12 @@ CARDS[:cellar] = {
   :cost        => 2,
   :actions     => 1,
   :description => 'Discard X cards, draw X cards',
-  :behaviour   => lambda {|game, card|
-    discard_count = 0
-    game.engine.prompt = {
-      :prompt       => "discard (#{discard_count} so far)?",
-      :autocomplete => Dominion::Input::Autocomplete.cards_in_hand(game),
-      :accept       => lambda {|input|
-        if input
-          game.discard_card(game.player, input)
-          discard_count += 1
-          game.engine.prompt[:prompt] = "discard (#{discard_count} so far)?"
-        else
-          game.engine.prompt = nil
-        end
-
-        unless game.engine.prompt
-          discard_count.times { game.draw_card(game.player) }
-        end
-      }
+  :behaviour   => Dominion::Input.accept_cards(
+    :strategy => Dominion::Input::Autocomplete.cards_in_hand,
+    :prompt   => lambda {|game, inputs| "discard (%i so far)? " % inputs.length },
+    :each     => lambda {|game, input| game.discard_card(game.player, input) },
+    :after    => lambda {|game, inputs|
+      inputs.length.times { game.draw_card(game.player) }
     }
-  }
+  )
 }

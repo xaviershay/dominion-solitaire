@@ -96,14 +96,45 @@ module Dominion
     end
   end
 
-  module Input
-    class Autocomplete
-      def self.cards_in_hand(game)
-        lambda {|input|
-          suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
-            x[:name] =~ /^#{input}/i
+  class Input
+    def self.accept_cards(opts)
+      lambda {|game, card|
+        inputs = []
+
+        game.engine.prompt = {
+          :prompt       => opts[:prompt].call(game, inputs),
+          :autocomplete => opts[:strategy].call(game),
+          :accept       => lambda {|input|
+            if input
+              inputs << input
+              opts[:each].call(game, input) if opts[:each]
+
+              game.engine.prompt[:prompt] = opts[:prompt].call(game, inputs)
+
+              if opts[:max] && inputs.length >= opts[:max]
+                game.engine.prompt = nil
+              end
+            else
+              game.engine.prompt = nil
+            end
+
+            if opts[:after] && game.engine.prompt.nil?
+              opts[:after].call(game, inputs)
+            end
           }
-          suggest ? suggest[:name] : nil
+        }
+      }
+    end
+
+    class Autocomplete
+      def self.cards_in_hand
+        lambda {|game|
+          lambda {|input|
+            suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
+              x[:name] =~ /^#{input}/i
+            }
+            suggest ? suggest[:name] : nil
+          }
         }
       end
     end
@@ -114,7 +145,6 @@ end
 class Game
   include Dominion::Util
   include Dominion::Player
-  include Dominion::Input
 
   attr_accessor :board, :cards, :player, :turn
 
