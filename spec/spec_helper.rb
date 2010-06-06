@@ -43,7 +43,9 @@ module CardMacros
   end
 
   def input(key)
-    @game.engine.prompt[:accept][key]
+    prompt = @game.engine.prompt
+
+    prompt[:accept][prompt[:autocomplete][key]] if prompt
   end
 
   def playing_card(card)
@@ -59,9 +61,25 @@ module CardMacros
   def hand(cards = nil)
     @game.player[:hand] = cards || @game.player[:hand]
   end
+
+  def trash(cards = nil)
+    @game.player[:trash] = cards || @game.player[:trash]
+  end
 end
 
 
 Spec::Runner.configure do |config|
   config.include CardMacros
+end
+
+def describe_card(key, &block)
+  describe(key.to_s) do
+    subject { card(key) }
+
+    before do
+      game_with_cards(key)
+    end
+
+    instance_eval(&block)
+  end
 end

@@ -1,12 +1,6 @@
 require 'spec_helper'
 
-describe 'Cellar' do
-  subject { card(:cellar) }
-
-  before do
-    game_with_cards(:cellar)
-  end
-
+describe_card :cellar  do
   describe 'when I discard 0 cards' do
     before do
       deck cards(:copper, 1)
