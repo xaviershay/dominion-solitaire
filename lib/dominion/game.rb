@@ -149,48 +149,8 @@ class Game
   attr_accessor :board, :cards, :player, :turn
 
   def initialize
-    @cards = generate_names!({
-      :estate => {
-        :type => :victory,
-        :cost => 2},
-      :duchy => {
-        :type => :victory,
-        :cost => 5},
-      :provence => {
-        :type => :victory,
-        :cost => 8},
-      :copper => {
-        :type => :treasure,
-        :gold => 1,
-        :cost => 0},
-      :silver => {
-        :type => :treasure,
-        :gold => 2,
-        :cost => 3},
-      :gold => {
-        :type => :treasure,
-        :gold => 3,
-        :cost => 6},
-      :curse => {
-        :type => :victory,
-        :cost => 0},
-      :village => {
-        :type => :action,
-        :cost => 3,
-        :actions => 2,
-        :cards => 1},
-      :market => {
-        :type => :action,
-        :cost => 5,
-        :actions => 1,
-        :cards => 1,
-        :gold => 1,
-        :buys => 1},
-
-      :end => {}
-     })
-
-    @turn = 1
+    @cards = {}
+    @turn  = 1
 
     self.engine = Dominion::UI::NCurses.new
   end
@@ -233,6 +193,7 @@ class Game
   end
 
   def add_card(key, values)
+    key = key.to_sym
     @cards[key] = add_defaults_to_card(key, values)
   end
 
@@ -327,8 +288,14 @@ class Game
     @instance ||= new
   end
 
+  def load_all_cards
+    load_cards(*Dir[File.dirname(__FILE__) + '/cards/*.rb'].map {|x|
+      File.basename(x).split('.')[0..-2].join(".")
+    })
+  end
+
   def load_cards(*args)
-    args.each do |c|
+    args.map(&:to_sym).each do |c|
       require File.dirname(__FILE__) + "/cards/#{c}"
       add_card(c, CARDS[c])
     end

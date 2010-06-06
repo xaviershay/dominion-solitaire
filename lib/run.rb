@@ -8,8 +8,6 @@ end
 
 require 'dominion/game'
 
-CARDS = {}
-
-game = Game.instance
-game.load_cards(:cellar, :chapel)
+game = Game.new
+game.load_all_cards
 game.run

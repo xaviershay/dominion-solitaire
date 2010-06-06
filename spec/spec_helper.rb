@@ -48,7 +48,7 @@ end
 module CardMacros
   def game_with_cards(*cards)
     @game = Game.new.tap do |game|
-      game.load_cards(*cards)
+      game.load_cards(*cards + [:copper, :estate])
     end
   end
 
