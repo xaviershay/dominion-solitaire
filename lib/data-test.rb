@@ -79,6 +79,13 @@ module Dominion
       player[:discard] << card
     end
 
+    def trash_card(player, card_name)
+      card = player[:hand].detect {|x| x[:name] == card_name.to_s } 
+
+      player[:hand].delete_at(player[:hand].index(card))
+      player[:trash] << card
+    end
+
     def cleanup(board, player)
       player[:discard] += player[:hand]
       player[:discard] += player[:played]
@@ -137,7 +144,33 @@ class Game
       :chapel => {
         :type => :action,
         :cost => 2,
-        :description => 'Trash <= 4 cards'},
+        :description => 'Trash <= 4 cards',
+        :behaviour => lambda {|player, card|
+          trash_count = 0
+          max_trash = 4
+          engine.prompt = {
+            :prompt => "trash (#{max_trash - trash_count} left)?",
+            :autocomplete => lambda {|input|
+              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
+                x[:name] =~ /^#{input}/i
+              }
+              suggest ? suggest[:name] : nil
+            },
+            :accept => lambda {|input|
+              if input
+                trash_card(player, input)
+                trash_count += 1
+                engine.prompt[:prompt] = "trash (#{max_trash - trash_count} left)?",
+
+                if trash_count >= max_trash
+                  engine.prompt = nil
+                end
+              else
+                engine.prompt = nil
+              end
+            }
+          }
+        }},
       :village => {
         :type => :action,
         :cost => 3,
@@ -157,9 +190,8 @@ class Game
         :description => 'Discard X cards, draw X cards',
         :behaviour => lambda {|player, card|
           discard_count = 0
-          max_discard = 4
           engine.prompt = {
-            :prompt => "discard (#{max_discard - discard_count} left)?",
+            :prompt => "discard (#{discard_count} so far)?",
             :autocomplete => lambda {|input|
               suggest = input.length == 0 ? nil : player[:hand].detect {|x|
                 x[:name] =~ /^#{input}/i
@@ -170,11 +202,7 @@ class Game
               if input
                 discard_card(player, input)
                 discard_count += 1
-                engine.prompt[:prompt] = "discard (#{max_discard - discard_count} left)?",
-
-                if discard_count >= max_discard
-                  engine.prompt = nil
-                end
+                engine.prompt[:prompt] = "discard (#{discard_count} so far)?"
               else
                 engine.prompt = nil
               end
@@ -209,6 +237,7 @@ class Game
       :gold => 0,
       :hand    => [],
       :discard => [],
+      :trash   => [],
       :played  => [],
       :deck => randomize(
         [cards[:cellar]] * 3 +
@@ -230,7 +259,7 @@ class Game
     }.map {|x|
       raise x.inspect unless x[:gold]
       x[:gold] 
-    }.inject {|a, b| 
+    }.inject(0) {|a, b| 
       a + b 
     }
   end
