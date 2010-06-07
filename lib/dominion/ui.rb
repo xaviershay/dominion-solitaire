@@ -95,11 +95,13 @@ class Dominion::UI::NCurses
           waddstr(window, text.to_s)
         end
 
-        type_char = {
-          :treasure => 'T',
-          :action   => 'A',
-          :victory  => 'V'
-        }
+        type_char = [
+          [:reaction, 'R'],
+          [:attack,   'X'],
+          [:treasure, 'T'],
+          [:victory,  'V'],
+          [:action,   'A']
+        ]
 
         max_name_length = game.board.map {|pile| 
           pile[0][:name].length 
@@ -122,17 +124,17 @@ class Dominion::UI::NCurses
 
           print_with_color[:white, ' '] if i > 0
           print_with_color[:yellow, card[:cost]]
-          print_with_color[:red,    type_char[card[:type]]]
+          print_with_color[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
           print_with_color[:blue,   pile.size]
           print_with_color[:white,  " %s" % card[:name]]
         end
 print_with_color[:white, "\n"] 
-        body.each do |pile|
+        body.sort_by {|x| [x[0][:cost], x[0][:name]] }.each do |pile|
           card = pile.first
 
           print_with_color[:white, ' ']
           print_with_color[:yellow, card[:cost]]
-          print_with_color[:red,    type_char[card[:type]]]
+          print_with_color[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
           print_with_color[:blue,   '%-2i' % pile.size]
           if card_active?(card)
             bold_with_color[:white,  " %-#{max_name_length}s " % card[:name]]
