@@ -7,7 +7,7 @@ module Dominion
       values[:key]  = name
       values[:name] = name.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
 
-      if values[:type] == :action
+      if [*values[:type]].include?(:action)
         existing = values[:behaviour]
         values[:behaviour] = lambda do |game, card|
           game.player[:actions] += card[:actions].to_i
@@ -53,7 +53,7 @@ module Dominion
       card = from.detect {|x| x[:key] == card[:key] } 
 
       from.delete_at(from.index(card))
-      to << card
+      to.unshift(card)
       card
     end
 
@@ -76,6 +76,13 @@ module Dominion
         player[:deck].shift.tap do |c|
           player[:revealed] << c
         end
+      end
+    end
+
+    def gain_card(board, player, card_key)
+      pile = board.detect {|pile| pile[0][:key] == card_key }
+      pile.shift.tap do |card|
+        player[:discard] << card
       end
     end
 
@@ -208,20 +215,10 @@ module Dominion
     end
 
     def board
-      @board ||= [
-        [card(:copper)] * 60,
-        [card(:silver)] * 40,
-        [card(:gold)] * 30,
-        [card(:estate)] * 8,
-        [card(:duchy)]  * 8,
-        [card(:provence)]  * 8,
-        [card(:curse)] * 30,
-        [card(:chapel)]  * 8,
-        [card(:cellar)]  * 8,
-        [card(:village)]  * 8,
-        [card(:market)]  * 8,
-        [card(:adventurer)]  * 8
-      ]
+      @board ||= @cards.keys.map {|x| [card(x)] * 8 }
+#         [card(:copper)] * 60,
+#         [card(:silver)] * 40,
+#         [card(:gold)] * 30,
     end
 
     def card(key)

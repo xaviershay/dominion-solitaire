@@ -3,6 +3,7 @@ require 'spec'
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'dominion/game'
 require File.expand_path(File.dirname(__FILE__) + '/cards/common/action_spec')
+require File.expand_path(File.dirname(__FILE__) + '/cards/common/attack_spec')
 
 class Proc
   def inspect
@@ -110,12 +111,12 @@ Spec::Runner.configure do |config|
   config.include CardMacros
 end
 
-def describe_card(key, &block)
+def describe_card(key, opts = {}, &block)
   describe(key.to_s) do
     subject { card(key) }
 
     before do
-      game_with_cards(key)
+      game_with_cards(*[key] + (opts[:needs_cards] || []))
     end
 
     instance_eval(&block)
