@@ -235,7 +235,7 @@ module Dominion
               :prompt => "action (#{player[:actions]} left)?",
               :autocomplete => lambda {|input|
                 suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-                  x[:type] == :action && x[:name] =~ /^#{input}/i
+                  [*x[:type]].include?(:action) && x[:name] =~ /^#{input}/i
                 }
                 suggest ? suggest[:name] : nil
               },

@@ -1,6 +1,6 @@
 describe 'an action card', :shared => true do
   it 'has a type of :action' do
-    subject[:type] == :action
+    [*subject[:type]].should include(:action)
   end
 
   describe 'when played' do
