@@ -244,7 +244,7 @@ print_with_color[:white, "\n"]
 
           suggest = prompt[:autocomplete][input_buffer].to_s
 
-          print_with_color[:yellow_back, "%s %s" % [
+          print_with_color[prompt[:color] || :yellow_back, "%s %s" % [
             prompt[:prompt],
             input_buffer]]
 

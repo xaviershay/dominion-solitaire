@@ -287,6 +287,7 @@ module Dominion
                 }
                 suggest ? suggest[:name] : nil
               },
+              :color  => :green_back,
               :accept => lambda {|input|
                 engine.prompt = nil
                 if input
@@ -301,13 +302,14 @@ module Dominion
               card[:cost] <= treasure(player)
             }
             engine.prompt = {
-              :prompt => "buy (#{player[:buys]} left)?",
+              :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
               :autocomplete => lambda {|input|
                 suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
                   x[:cost] <= treasure(player) && x[:name] =~ /^#{input}/i
                 }
                 suggest ? suggest[:name] : nil
               },
+              :color  => :magenta_back,
               :accept => lambda {|input|
                 if input
                   buy_card(board, player, input)
