@@ -191,6 +191,7 @@ print_with_color[:white, "\n"]
         end
         
         print_with_color[:white, "Hand: "]
+        line_length = 6
         game.player[:hand].each_with_index do |card, index|
           suffix = index == game.player[:hand].length - 1 ? '' : ', '
           if card_active?(card)
@@ -198,9 +199,15 @@ print_with_color[:white, "\n"]
           else
             print_with_color[:white, card[:name] + suffix]
           end
+          line_length += (card[:name] + suffix).length
         end
+
+        # TODO: print ' ' doesn't work :(
+        print_with_color[:white, " " * (77 - line_length)]
         print_with_color[:white, "\n"]
-        print_with_color[:white, "Played: %s\n" % game.player[:played].map {|x| x[:name] }.join(", ")]
+        played = "Played: %s\n" % game.player[:played].map {|x| x[:name] }.join(", ")
+        print_with_color[:white, played]
+        print_with_color[:white, " " * (77 - played.length)]
 
       end
     }, {
