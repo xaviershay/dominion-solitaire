@@ -79,8 +79,9 @@ module Dominion
       end
     end
 
-    def gain_card(board, player, card_key)
-      pile = board.detect {|pile| pile[0][:key] == card_key }
+    def gain_card(board, player, card_name_or_key)
+      attr = card_name_or_key.is_a?(Symbol) ? :key : :name
+      pile = board.detect {|pile| pile[0][attr] == card_name_or_key }
       pile.shift.tap do |card|
         player[:discard] << card
       end
@@ -150,7 +151,9 @@ module Dominion
                 game.engine.prompt = nil
               end
             else
-              game.engine.prompt = nil
+              if !opts[:min] || inputs.length >= opts[:min]
+                game.engine.prompt = nil
+              end
             end
 
             if opts[:after] && game.engine.prompt.nil?
@@ -162,6 +165,17 @@ module Dominion
     end
 
     class Autocomplete
+      def self.cards_on_board(match_func = lambda {|x| true })
+        lambda {|game|
+          lambda {|input|
+            suggest = input.length == 0 ? nil : game.board.detect {|x|
+              x[0][:name] =~ /^#{input}/i && match_func[x[0]]
+            }
+            suggest ? suggest[0][:name] : nil
+          }
+        }
+      end
+
       def self.cards_in_hand
         lambda {|game|
           lambda {|input|
@@ -218,12 +232,16 @@ module Dominion
       @board ||= begin
         defaults = [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
         (defaults + randomize(@cards.keys - defaults)[0..9]).map {|x|
-          [card(x)] * ({
-            :copper => 60,
-            :silver => 40,
-            :gold   => 30
-          }[x] || 8)
-        }
+          if @cards.has_key?(x) 
+            [card(x)] * ({
+              :copper => 60,
+              :silver => 40,
+              :gold   => 30
+            }[x] || 8)
+          else
+            nil
+          end
+        }.compact
       end
 #         [card(:copper)] * 60,
 #         [card(:silver)] * 40,
