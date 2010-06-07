@@ -98,6 +98,10 @@ module CardMacros
   def trash(cards = nil)
     player[:trash] = cards || player[:trash]
   end
+
+  def discard(cards = nil)
+    player[:discard] = cards || player[:discard]
+  end
 end
 
 

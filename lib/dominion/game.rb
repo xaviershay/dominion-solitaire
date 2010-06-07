@@ -49,6 +49,14 @@ module Dominion
   end
 
   module Player
+    def move_card(card, from, to)
+      card = from.detect {|x| x[:key] == card[:key] } 
+
+      from.delete_at(from.index(card))
+      to << card
+      card
+    end
+
     def draw_card(player)
       if player[:deck].length == 0
         player[:deck] = randomize(player[:discard])
@@ -56,6 +64,19 @@ module Dominion
       end
 
       player[:hand] << player[:deck].shift unless player[:deck].empty?
+    end
+
+    def reveal_card(player)
+      if player[:deck].length == 0
+        player[:deck] = randomize(player[:discard])
+        player[:discard] = []
+      end
+
+      unless player[:deck].empty?
+        player[:deck].shift.tap do |c|
+          player[:revealed] << c
+        end
+      end
     end
 
     def buy_card(board, player, card_name)
@@ -167,6 +188,7 @@ module Dominion
         :discard => [],
         :trash   => [],
         :played  => [],
+        :revealed => [],
         :deck => randomize(
           [cards[:estate]] * 3 +
           [cards[:copper]] * 7
@@ -186,7 +208,8 @@ module Dominion
         [card(:chapel)]  * 8,
         [card(:cellar)]  * 8,
         [card(:village)]  * 8,
-        [card(:market)]  * 8
+        [card(:market)]  * 8,
+        [card(:adventurer)]  * 8
       ]
     end
 

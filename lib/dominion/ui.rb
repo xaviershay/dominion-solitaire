@@ -205,9 +205,16 @@ print_with_color[:white, "\n"]
         # TODO: print ' ' doesn't work :(
         print_with_color[:white, " " * (77 - line_length)]
         print_with_color[:white, "\n"]
-        played = "Played: %s\n" % game.player[:played].map {|x| x[:name] }.join(", ")
+        played = "Played: %s" % game.player[:played].map {|x| x[:name] }.join(", ")
         print_with_color[:white, played]
         print_with_color[:white, " " * (77 - played.length)]
+        print_with_color[:white, "\n"]
+
+        unless game.player[:revealed].empty?
+          revealed = "Revealed: %s\n" % game.player[:revealed].map {|x| x[:name] }.join(", ")
+          print_with_color[:white, revealed]
+          print_with_color[:white, " " * (77 - revealed.length)]
+        end
 
       end
     }, {

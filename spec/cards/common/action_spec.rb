@@ -18,8 +18,9 @@ describe 'an action card', :shared => true do
       player[:gold].should == subject[:gold].to_i
     end
 
-    it "draws cards equal to it's card count" do
-      player[:hand].size.should == subject[:cards].to_i
+    it "draws at least as many cards as it's card count" do
+      # Some cards draw via other means, so can draw more
+      player[:hand].size.should >= subject[:cards].to_i
     end
   end
 end
