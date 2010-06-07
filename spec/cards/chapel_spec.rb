@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe_card :chapel do
+  it_should_behave_like 'an action card'
+
   describe 'when I input 4 cards' do
     before do
       hand cards(:copper, 5)

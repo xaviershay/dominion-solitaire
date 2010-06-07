@@ -3,6 +3,7 @@ require 'dominion/ui'
 module Dominion
   module Util
     def add_defaults_to_card(name, values)
+      values = values.dup
       values[:key]  = name
       values[:name] = name.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
 
@@ -168,10 +169,9 @@ module Dominion
         :played  => [],
         :deck => randomize(
           [cards[:estate]] * 3 +
-          [cards[:market]] * 7
+          [cards[:copper]] * 7
         )
       }
-
     end
 
     def board

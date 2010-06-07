@@ -2,6 +2,13 @@ require 'spec'
 
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'dominion/game'
+require File.expand_path(File.dirname(__FILE__) + '/cards/common/action_spec')
+
+class Proc
+  def inspect
+    "[PROC]"
+  end
+end
 
 Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
   match do |game|
@@ -76,16 +83,20 @@ module CardMacros
     input ''
   end
 
+  def player
+    @game.player
+  end
+
   def deck(cards = nil)
-    @game.player[:deck] = cards || @game.player[:deck]
+    player[:deck] = cards || player[:deck]
   end
 
   def hand(cards = nil)
-    @game.player[:hand] = cards || @game.player[:hand]
+    player[:hand] = cards || player[:hand]
   end
 
   def trash(cards = nil)
-    @game.player[:trash] = cards || @game.player[:trash]
+    player[:trash] = cards || player[:trash]
   end
 end
 

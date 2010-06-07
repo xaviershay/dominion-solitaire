@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe_card :cellar  do
+  it_should_behave_like 'an action card'
+
   describe 'when I discard 0 cards' do
     before do
       deck cards(:copper, 1)
