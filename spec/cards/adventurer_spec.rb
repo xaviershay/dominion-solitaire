@@ -7,7 +7,7 @@ describe_card :adventurer do
     it 'reveals cards until 2 treasures are revealed, then puts them both in hand and discards the rest' do
       deck cards(:estate, 1) + cards(:copper, 2) 
 
-      playing_card(subject)
+      playing_card
 
       hand.should    have_cards(cards(:copper, 2))
       discard.should have_cards(cards(:estate, 1))

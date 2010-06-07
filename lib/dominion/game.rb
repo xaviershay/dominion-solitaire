@@ -165,6 +165,14 @@ module Dominion
           }
         }
       end
+
+      def self.boolean
+        lambda {|game|
+          lambda {|input|
+            %w(Y N).detect {|x| x == input.upcase } || nil
+          }
+        }
+      end
     end
   end
 
@@ -195,7 +203,7 @@ module Dominion
         :deck => randomize(
           [cards[:estate]] * 3 +
           [cards[:copper]] * 7
-        )
+        ).compact
       }
     end
 

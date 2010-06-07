@@ -77,7 +77,8 @@ module CardMacros
     prompt[:accept][prompt[:autocomplete][key]] if prompt
   end
 
-  def playing_card(card)
+  def playing_card(card = nil)
+    card ||= subject
     card[:behaviour][@game, subject]
     yield if block_given?
     input ''

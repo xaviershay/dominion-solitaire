@@ -4,7 +4,7 @@ describe 'an action card', :shared => true do
   end
 
   describe 'when played' do
-    before { playing_card(subject) }
+    before { playing_card }
 
     it "increments the player actions by it's action count" do
       player[:actions].should == subject[:actions].to_i + 1

@@ -10,7 +10,9 @@ Dominion::CARDS[:adventurer] = {
     }
 
     while treasure[].size < 2 && !(player[:deck] + player[:discard]).empty?
-      revealed << game.reveal_card(game.player)
+      game.reveal_card(game.player).tap do |c|
+        revealed << c if c
+      end
     end
 
     game.engine.prompt = {
