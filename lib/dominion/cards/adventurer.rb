@@ -1,8 +1,8 @@
 Dominion::CARDS[:adventurer] = {
-  :type => :action,
-  :cost => 6,
+  :type        => :action,
+  :cost        => 6,
   :description => 'Reveal until 2T revealed: T to hand, rest to discard',
-  :behaviour => lambda {|game, card|
+  :behaviour   => lambda {|game, card|
     player = game.player
     revealed = []
     treasure = lambda { 
