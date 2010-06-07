@@ -205,11 +205,11 @@ print_with_color[:white, "\n"]
         end
 
         # TODO: print ' ' doesn't work :(
-        print_with_color[:white, " " * (77 - line_length)]
+        print_with_color[:white, " " * (77 - line_length)] if line_length < 76
         print_with_color[:white, "\n"]
         played = "Played: %s" % game.player[:played].map {|x| x[:name] }.join(", ")
         print_with_color[:white, played]
-        print_with_color[:white, " " * (77 - played.length)]
+        print_with_color[:white, " " * (77 - played.length)] if played.length < 76
         print_with_color[:white, "\n"]
 
         unless game.player[:revealed].empty?
