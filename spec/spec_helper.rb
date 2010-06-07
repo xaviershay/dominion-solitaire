@@ -80,6 +80,7 @@ module CardMacros
 
   def playing_card(card = nil)
     card ||= subject
+    player[:played] << card
     card[:behaviour][@game, subject]
     yield if block_given?
     input ''
