@@ -269,8 +269,16 @@ module Dominion
       while running
         skip = false
         if engine.prompt.nil?
-          if player[:actions] > 0
-            engine.card_active = lambda {|card| card[:type] == :action && player[:hand].include?(card)}
+          if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
+            autoplay = [:village, :market, :laboratory]
+            while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
+              play_card(player, to_play[:name])
+              skip = true
+            end
+
+            next if skip
+
+            engine.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
             engine.prompt = {
               :prompt => "action (#{player[:actions]} left)?",
               :autocomplete => lambda {|input|
@@ -288,7 +296,7 @@ module Dominion
                 end
               }
             }
-          elsif player[:buys] > 0
+          elsif player[:buys] > 0 # TODO: option to skip copper buys
             engine.card_active = lambda {|card| 
               card[:cost] <= treasure(player)
             }
