@@ -215,7 +215,16 @@ module Dominion
     end
 
     def board
-      @board ||= @cards.keys.map {|x| [card(x)] * 8 }
+      @board ||= begin
+        defaults = [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
+        (defaults + randomize(@cards.keys - defaults)[0..9]).map {|x|
+          [card(x)] * ({
+            :copper => 60,
+            :silver => 40,
+            :gold   => 30
+          }[x] || 8)
+        }
+      end
 #         [card(:copper)] * 60,
 #         [card(:silver)] * 40,
 #         [card(:gold)] * 30,
