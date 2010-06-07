@@ -14,6 +14,12 @@ describe_card :adventurer do
     end
 
     it 'aborts if 2 treasures cannot be found' do
+      deck cards(:estate, 1) + cards(:copper, 1) 
+
+      playing_card
+
+      hand.should    have_cards(cards(:copper, 1))
+      discard.should have_cards(cards(:estate, 1))
     end
   end
 end
