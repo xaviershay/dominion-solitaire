@@ -81,8 +81,11 @@ module Dominion
 
     def buy_card(board, player, card_name)
       pile = board.detect {|pile| pile[0][:name] == card_name.to_s }
-      player[:discard] << pile.shift
-      player[:buys] -= 1
+      pile.shift.tap do |card|
+        player[:discard] << card
+        player[:gold] -= card[:cost]
+        player[:buys] -= 1
+      end
     end
 
     def play_card(player, card_name)
