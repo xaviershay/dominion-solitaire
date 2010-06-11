@@ -37,6 +37,10 @@ Spec::Matchers.define :have_prompt do
   match do |game|
     game.engine.prompt
   end
+
+  failure_message_for_should do |game|
+    "expected a prompt"
+  end
 end
 
 Spec::Matchers.define :have_cards do |cards|
