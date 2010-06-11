@@ -14,6 +14,7 @@ describe_card :bureaucrat, :needs_cards => [:silver] do
     end
 
     it 'does not gain a silver if no more are left in the pile' do
+      pending
     end
 
     it 'forces each other player to reveal a victory card and put it on top of their deck' do
