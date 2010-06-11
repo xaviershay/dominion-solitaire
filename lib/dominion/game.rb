@@ -50,7 +50,11 @@ module Dominion
 
   module Player
     def move_card(card, from, to)
-      card = from.detect {|x| x[:key] == card[:key] } 
+      key = if card.is_a?(Symbol)
+        card = from.detect {|x| x[:key] == card } 
+      else
+        card = from.detect {|x| x[:key] == card[:key] } 
+      end
 
       from.delete_at(from.index(card))
       to.unshift(card)
