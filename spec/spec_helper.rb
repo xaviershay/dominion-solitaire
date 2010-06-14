@@ -109,6 +109,10 @@ module CardMacros
   def discard(cards = nil)
     player[:discard] = cards || player[:discard]
   end
+
+  def played(cards = nil)
+    player[:played] = cards || player[:played]
+  end
 end
 
 

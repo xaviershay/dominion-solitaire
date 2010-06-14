@@ -180,11 +180,11 @@ module Dominion
         }
       end
 
-      def self.cards_in_hand
+      def self.cards_in_hand(match_func = lambda {|x| true })
         lambda {|game|
           lambda {|input|
             suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
-              x[:name] =~ /^#{input}/i
+              x[:name] =~ /^#{input}/i && match_func[x]
             }
             suggest ? suggest[:name] : nil
           }
