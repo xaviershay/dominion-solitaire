@@ -1,7 +1,7 @@
 Dominion::CARDS[:library] = {
   :type        => :action,
   :cost        => 5,
-  :description => 'Draw to 7 cards, discarding action cards as they are drawn',
+  :description => 'Draw to 7 cards, discard actions as they are drawn',
   :behaviour   => lambda {|game, card|
     player = game.player
     revealed = []

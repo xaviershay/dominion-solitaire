@@ -5,7 +5,7 @@ Dominion::CARDS[:moneylender] = {
   :behaviour => lambda {|game, card|
     if game.player[:hand].detect {|x| x[:key] == :copper }
       game.engine.prompt = {
-        :prompt       => "Trash a copper (n/Y)?",
+        :prompt       => "Trash a copper (N/y)?",
         :autocomplete => Dominion::Input::Autocomplete.boolean[game],
         :accept       => lambda {|input|
           if input == 'Y'
