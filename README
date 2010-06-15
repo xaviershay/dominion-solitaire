@@ -1,7 +1,8 @@
 = Dominion Solitaire
 An ncurses Dominion implementation with a focus on lightning quick goldfishing. 
 You play cards by typing their name with smart autocomplete.
-It's a WIP - logic is there to play the game, but virtually no card logic exists yet (i.e there's no cards).
+Only the base set is implemented currently.
+There's still a few rough edges (don't press the arrow keys, don't buy all of a card)
 
 == Running
 
