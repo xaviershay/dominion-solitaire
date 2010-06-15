@@ -5,7 +5,7 @@ module Dominion
     def add_defaults_to_card(name, values)
       values = values.dup
       values[:key]  = name
-      values[:name] = name.to_s.gsub(/\b('?[a-z])/) { $1.capitalize }
+      values[:name] = name.to_s.tr('_', ' ').gsub(/\b('?[a-z])/) { $1.capitalize }
 
       if [*values[:type]].include?(:action)
         existing = values[:behaviour]
@@ -94,6 +94,7 @@ module Dominion
     def buy_card(board, player, card_name)
       pile = board.detect {|pile| pile[0][:name] == card_name.to_s }
       pile.shift.tap do |card|
+        player[:bought] << card.dup
         player[:discard] << card
         player[:gold] -= card[:cost]
         player[:buys] -= 1
@@ -114,6 +115,7 @@ module Dominion
       card = player[:hand].detect {|x| x[:name].downcase == card_name.to_s.downcase } 
 
       player[:hand].delete_at(player[:hand].index(card))
+      player[:discarded] << card.dup
       player[:discard] << card
     end
 
@@ -124,11 +126,34 @@ module Dominion
       player[:trash] << card
     end
 
+    def format_cards(cards)
+      cards.inject({}) {|a, card|
+        a[card[:name]] ||= 0
+        a[card[:name]] += 1
+        a
+      }.map {|name, kount|
+        if kount == 1
+          name
+        else
+          "#{name} x #{kount}"
+        end
+      }.sort.join(", ")
+    end
+
     def cleanup(board, player)
+      buffer = ["Turn #{@turn}"]
+      buffer << "Hand: #{format_cards(player[:hand])}" unless player[:hand].empty? 
+      buffer << "Played: #{format_cards(player[:played])}" unless player[:played].empty? 
+      buffer << "Discarded: #{format_cards(player[:discarded])}" unless player[:discarded].empty? 
+      buffer << "Bought: #{format_cards(player[:bought])}" unless player[:bought].empty? 
+      log buffer.join("\n") + "\n"
+      
       player[:discard] += player[:hand]
       player[:discard] += player[:played]
       player[:hand] = []
       player[:played] = []
+      player[:discarded] = []
+      player[:bought] = []
       5.times { draw_card(player) }
       player[:actions] = 1
       player[:buys]    = 1
@@ -225,6 +250,8 @@ module Dominion
         :trash   => [],
         :played  => [],
         :revealed => [],
+        :bought  => [],
+        :discarded => [],
         :deck => randomize(
           [cards[:estate]] * 3 +
           [cards[:copper]] * 7
