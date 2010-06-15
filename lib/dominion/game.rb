@@ -232,10 +232,13 @@ module Dominion
       }
     end
 
+    def default_cards
+      [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
+    end
+
     def board
       @board ||= begin
-        defaults = [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
-        (defaults + randomize(@cards.keys - defaults)[0..9]).map {|x|
+        (default_cards + randomize(@cards.keys - default_cards)[0..9]).map {|x|
           if @cards.has_key?(x) 
             [card(x)] * ({
               :copper => 60,
