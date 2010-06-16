@@ -357,7 +357,7 @@ module Dominion
               :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
               :autocomplete => lambda {|input|
                 suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                  x[:cost] <= treasure(player) && x[:name] =~ /^#{input}/i
+                  x[:cost] <= treasure(player) && x[:name] =~ /^#{Regexp.escape(input)}/i
                 }
                 suggest ? suggest[:name] : nil
               },

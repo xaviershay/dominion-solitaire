@@ -41,12 +41,15 @@ class Dominion::UI::NCurses
     if prompt
       case ch
       when 10
-        prompt[:accept][prompt[:autocomplete][input_buffer]]
+        autocompleted = prompt[:autocomplete][input_buffer]
+        if !(autocompleted == nil && input_buffer.length > 0)
+          prompt[:accept][autocompleted]
+        end
         self.input_buffer = ''
       when 127
         self.input_buffer = input_buffer[0..-2]
       else
-        self.input_buffer += ch.chr
+        self.input_buffer += ch.chr if ch.chr =~ /^[a-z ]+$/i
       end
     end
   end
