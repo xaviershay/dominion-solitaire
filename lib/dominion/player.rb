@@ -1,5 +1,9 @@
 module Dominion
   module Player
+    def player=(value)
+      @player = value
+    end
+
     def player
       @player ||= {
         :actions   => 1,
