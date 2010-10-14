@@ -123,6 +123,7 @@ module Dominion
       card = player[:hand].detect {|x| x[:name] == card_name.to_s } 
 
       player[:hand].delete_at(player[:hand].index(card))
+      player[:trashed] << card
       player[:trash] << card
     end
 
@@ -144,6 +145,7 @@ module Dominion
       buffer = ["Turn #{@turn}"]
       buffer << "Hand: #{format_cards(player[:hand])}" unless player[:hand].empty? 
       buffer << "Played: #{format_cards(player[:played])}" unless player[:played].empty? 
+      buffer << "Trashed: #{format_cards(player[:trashed])}" unless player[:trashed].empty? 
       buffer << "Discarded: #{format_cards(player[:discarded])}" unless player[:discarded].empty? 
       buffer << "Bought: #{format_cards(player[:bought])}" unless player[:bought].empty? 
       log buffer.join("\n") + "\n"
@@ -153,6 +155,7 @@ module Dominion
       player[:hand] = []
       player[:played] = []
       player[:discarded] = []
+      player[:trashed] = []
       player[:bought] = []
       5.times { draw_card(player) }
       player[:actions] = 1
@@ -252,6 +255,7 @@ module Dominion
         :revealed => [],
         :bought  => [],
         :discarded => [],
+        :trashed => [],
         :deck => randomize(
           [cards[:estate]] * 3 +
           [cards[:copper]] * 7
