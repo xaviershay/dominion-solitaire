@@ -1,5 +1,4 @@
-module Dominion; module UI; end; end;
-class Dominion::UI::NCurses < Dominion::Engine
+module Dominion::UI::NCurses
   class InputWindow < Window
     attr_accessor :input_buffer
 

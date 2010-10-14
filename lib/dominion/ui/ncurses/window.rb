@@ -1,5 +1,4 @@
-module Dominion; module UI; end; end;
-class Dominion::UI::NCurses < Dominion::Engine
+module Dominion::UI::NCurses
   class Window
     include FFI::NCurses
 

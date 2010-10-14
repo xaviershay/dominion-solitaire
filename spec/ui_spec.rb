@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'dominion/ui'
+require 'dominion/ui/ncurses/engine'
 
-describe Dominion::UI::NCurses do
+describe Dominion::UI::NCurses::Engine do
   let(:game) { 
     Struct.new(:prompt).new({
       :autocomplete => {
