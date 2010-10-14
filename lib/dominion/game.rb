@@ -96,7 +96,6 @@ module Dominion
       player[:gold] + player[:hand].select {|x| 
         type?(x, :treasure)
       }.map {|x|
-        raise x.inspect unless x[:gold]
         x[:gold] 
       }.inject(0) {|a, b| 
         a + b 

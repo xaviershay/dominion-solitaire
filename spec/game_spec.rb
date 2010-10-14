@@ -86,4 +86,27 @@ describe Dominion::Game do
       specify { subject.card_active?(check_card).should be_true }
     end
   end
+
+  describe '#treasure' do
+    describe 'with no hand' do
+      before do
+        player[:gold] = 1
+      end
+
+      it 'should return the players gold' do
+        subject.treasure(player).should == 1
+      end
+    end
+
+    describe 'with treasure in hand' do
+      before do
+        hand cards(:copper, 2)
+        player[:gold] = 1
+      end
+
+      it 'should return the sum of the players gold and all treasure in hand' do
+        subject.treasure(player).should == 3
+      end
+    end
+  end
 end
