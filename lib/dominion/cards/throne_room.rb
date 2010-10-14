@@ -10,7 +10,9 @@ Dominion::CARDS[:throne_room] = {
 
       if card
         card[:behaviour][game, card]
-        card[:behaviour][game, card]
+        game.wrap_behaviour do
+          card[:behaviour][game, card]
+        end
 
         game.move_card(card, game.player[:hand], game.player[:played])
       end

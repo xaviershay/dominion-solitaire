@@ -175,12 +175,14 @@ module Dominion
           :accept       => lambda {|input|
             if input
               inputs << input
+              existing = game.engine.prompt
+              game.engine.prompt = nil
               opts[:each].call(game, input) if opts[:each]
 
-              game.engine.prompt[:prompt] = opts[:prompt].call(game, inputs)
 
-              if opts[:max] && inputs.length >= opts[:max]
-                game.engine.prompt = nil
+              unless game.engine.prompt || (opts[:max] && inputs.length >= opts[:max])
+                game.engine.prompt = existing
+                game.engine.prompt[:prompt] = opts[:prompt].call(game, inputs)
               end
             else
               if !opts[:min] || inputs.length >= opts[:min]
@@ -257,8 +259,8 @@ module Dominion
         :discarded => [],
         :trashed => [],
         :deck => randomize(
-          [cards[:estate]] * 3 +
-          [cards[:copper]] * 7
+           [cards[:estate]] * 3 +
+           [cards[:copper]] * 7
         ).compact
       }
     end
@@ -327,9 +329,11 @@ module Dominion
         if engine.prompt.nil?
           if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
             autoplay = [:village, :market, :laboratory]
-            while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
-              play_card(player, to_play[:name])
-              skip = true
+            unless player[:hand].detect {|x| x[:key] == :throne_room }
+              while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
+                play_card(player, to_play[:name])
+                skip = true
+              end
             end
 
             next if skip
@@ -394,6 +398,22 @@ module Dominion
 
     def self.instance
       @instance ||= new
+    end
+
+    def wrap_behaviour(&block)
+      prompt = engine.prompt
+
+      if prompt
+        # Add an after function to the prompt, rather than running the code now
+        existing = prompt[:accept]
+        prompt[:accept] = lambda {|input|
+          existing[input]
+
+          wrap_behaviour { block.call }
+        }
+      else
+        block.call
+      end
     end
 
     def load_all_cards
