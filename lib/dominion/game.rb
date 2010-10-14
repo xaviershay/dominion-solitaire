@@ -12,44 +12,12 @@ module Dominion
     include Dominion::Board
     include Dominion::Card
 
-    attr_accessor :engine, :cards, :turn
+    attr_accessor :engine, :cards, :turn, :prompt
 
     def initialize
       self.cards = {}
       self.turn  = 1
       self.engine = Dominion::Engine.new
-    end
-
-    # An active card is one that can be interacted with. They are generally
-    # highlighted in the UI.
-    #
-    #   card - a hash describing a card
-    def card_active?(card)
-      self.prompt && self.prompt[:autocomplete][:card_active][card]
-    end
-
-    def prompt
-      @prompt
-    end
-
-    def prompt=(value)
-      @prompt = value
-    end
-
-    def add_card(key, values)
-      key = key.to_sym
-      cards[key] = add_defaults_to_card(key, values)
-    end
-
-    def treasure(player)
-      player[:gold] + player[:hand].select {|x| 
-        type?(x, :treasure)
-      }.map {|x|
-        raise x.inspect unless x[:gold]
-        x[:gold] 
-      }.inject(0) {|a, b| 
-        a + b 
-      }
     end
 
     def step
@@ -104,17 +72,6 @@ module Dominion
         engine.step(self, ctx)
       end
     end
-    
-    def accept(config)
-      lambda {|input|
-        self.prompt = nil
-        if input
-          config[:accept][input]
-        else
-          config[:decline][input]
-        end
-      }
-    end
 
     def run
       cleanup(board, player)
@@ -127,8 +84,23 @@ module Dominion
       engine.finalize if engine
     end
 
-    def self.instance
-      @instance ||= new
+    # An active card is one that can be interacted with. They are generally
+    # highlighted in the UI.
+    #
+    #   card - a hash describing a card
+    def card_active?(card)
+      self.prompt && self.prompt[:autocomplete][:card_active][card]
+    end
+
+    def treasure(player)
+      player[:gold] + player[:hand].select {|x| 
+        type?(x, :treasure)
+      }.map {|x|
+        raise x.inspect unless x[:gold]
+        x[:gold] 
+      }.inject(0) {|a, b| 
+        a + b 
+      }
     end
 
     def wrap_behaviour(&block)
@@ -157,6 +129,29 @@ module Dominion
         add_card(c, CARDS[c])
       end
     end
+
+    def self.instance
+      @instance ||= new
+    end
+
+    private
+    
+    def accept(config)
+      lambda {|input|
+        self.prompt = nil
+        if input
+          config[:accept][input]
+        else
+          config[:decline][input]
+        end
+      }
+    end
+
+    def add_card(key, values)
+      key = key.to_sym
+      cards[key] = add_defaults_to_card(key, values)
+    end
+
   end
   CARDS = {}
 end
