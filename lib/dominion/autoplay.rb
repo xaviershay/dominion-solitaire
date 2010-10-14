@@ -1,4 +1,5 @@
 module Dominion
+  # Rules to autoplay solitaire matches, for speedier gold fishing
   module Autoplay
     CARDS_TO_AUTOPLAY = [:village, :market, :laboratory]
 

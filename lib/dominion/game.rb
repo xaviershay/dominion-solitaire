@@ -7,6 +7,7 @@ require 'dominion/card'
 require 'dominion/autoplay'
 
 module Dominion
+  # The main game logic. See #run.
   class Game
     include Dominion::Util
     include Dominion::Player
@@ -39,7 +40,7 @@ module Dominion
               :decline => lambda {|input| player[:actions] = 0 }
             )
           }
-        elsif player[:buys] > 0 # TODO: option to skip copper buys
+        elsif player[:buys] > 0
           self.prompt = {
             :prompt      => "buy (#{treasure(player)}/#{player[:buys]} left)?",
             :autocomplete => Input::Autocomplete.cards {|card|
@@ -52,7 +53,6 @@ module Dominion
             )
           }
         else
-          # Run the cleanup phase
           cleanup(board, player)
           skip = true
           @turn += 1
@@ -65,6 +65,7 @@ module Dominion
       end
     end
 
+    # The main game loop. Will not return, use CTRL+C to exit.
     def run
       cleanup(board, player)
       engine.setup
