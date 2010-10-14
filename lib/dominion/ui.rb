@@ -38,12 +38,12 @@ class Dominion::UI::NCurses < Dominion::Engine
   def step(game, ctx)
     ch = wgetch(ctx[:input_window])
 
-    if prompt
+    if game.prompt
       case ch
       when 10
-        autocompleted = prompt[:autocomplete][input_buffer]
+        autocompleted = game.prompt[:autocomplete][input_buffer]
         if !(autocompleted == nil && input_buffer.length > 0)
-          prompt[:accept][autocompleted]
+          game.prompt[:accept][autocompleted]
         end
         self.input_buffer = ''
       when 127
@@ -242,13 +242,13 @@ print_with_color[:white, "\n"]
           waddstr(window, text.to_s)
         end
 
-        if prompt
+        if game.prompt
           #print_with_color[:yellow_back, "%-80s" % ""]
 
-          suggest = prompt[:autocomplete][input_buffer].to_s
+          suggest = game.prompt[:autocomplete][input_buffer].to_s
 
-          print_with_color[prompt[:color] || :yellow_back, "%s %s" % [
-            prompt[:prompt],
+          print_with_color[game.prompt[:color] || :yellow_back, "%s %s" % [
+            game.prompt[:prompt],
             input_buffer]]
 
           fill = suggest[input_buffer.length..-1]

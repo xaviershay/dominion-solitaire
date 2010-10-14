@@ -27,11 +27,11 @@ module Dominion
     end
 
     def prompt
-      engine.prompt
+      @prompt
     end
 
     def prompt=(value)
-      engine.prompt = value
+      @prompt = value
     end
 
     def add_card(key, values)
