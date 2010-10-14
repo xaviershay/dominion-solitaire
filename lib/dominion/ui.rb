@@ -4,54 +4,47 @@ require 'dominion/engine'
 module Dominion; module UI; end; end;
 class Dominion::UI::NCurses < Dominion::Engine
   include FFI::NCurses
+  include Colour
 
   attr_accessor :input_buffer
 
+  def initialize
+    self.input_buffer = ''
+  end
+
   def setup
     super
-
-    self.input_buffer = ''
 
     initscr
     start_color
     noecho
 
-    # set up colour pairs
-    #             Background       Foreground
-    init_pair(0,  Colour::BLACK,   Colour::BLACK)
-    init_pair(1,  Colour::RED,     Colour::BLACK)
-    init_pair(2,  Colour::GREEN,   Colour::BLACK)
-    init_pair(3,  Colour::YELLOW,  Colour::BLACK)
-    init_pair(4,  Colour::BLUE,    Colour::BLACK)
-    init_pair(5,  Colour::MAGENTA, Colour::BLACK)
-    init_pair(6,  Colour::CYAN,    Colour::BLACK)
-    init_pair(7,  Colour::WHITE,   Colour::BLACK)
-
-    init_pair(8,  Colour::BLACK,   Colour::BLACK)
-    init_pair(9,  Colour::BLACK,   Colour::RED)
-    init_pair(10, Colour::BLACK,   Colour::GREEN)
-    init_pair(11, Colour::BLACK,   Colour::YELLOW)
-    init_pair(12, Colour::BLACK,   Colour::BLUE)
-    init_pair(13, Colour::BLACK,   Colour::MAGENTA)
-    init_pair(14, Colour::BLACK,   Colour::CYAN)
-    init_pair(15, Colour::BLACK,   Colour::WHITE)
+    [BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE].each_with_index do |color, index|
+      init_pair(index,     color, BLACK)
+      init_pair(index + 8, BLACK, color)
+    end
   end
+
+  BACKSPACE = 127
+  ENTER     = 10
 
   def step(game, ctx)
     ch = wgetch(ctx[:input_window])
 
     if game.prompt
       case ch
-      when 10
+      when ENTER
         autocompleted = game.prompt[:autocomplete][:strategy][input_buffer]
         if !(autocompleted == nil && input_buffer.length > 0)
           game.prompt[:accept][autocompleted]
         end
         self.input_buffer = ''
-      when 127
+      when BACKSPACE
         self.input_buffer = input_buffer[0..-2]
       else
-        self.input_buffer += ch.chr if ch.chr =~ /^[a-z ]+$/i
+        if ch.chr =~ /^[a-z ]+$/i
+          self.input_buffer += ch.chr 
+        end
       end
     end
   end

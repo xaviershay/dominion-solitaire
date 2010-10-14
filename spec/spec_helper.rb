@@ -1,4 +1,5 @@
 require 'spec'
+require 'rr'
 
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'dominion/game'
@@ -177,6 +178,7 @@ end
 
 Spec::Runner.configure do |config|
   config.include CardMacros
+  config.mock_with :rr
 end
 
 def describe_card(key, opts = {}, &block)
