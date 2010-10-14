@@ -71,9 +71,12 @@ module Dominion
           }
           self.prompt = {
             :prompt => "action (#{player[:actions]} left)?",
+            :completions => lambda {|card|
+              [*card[:type]].include?(:action) && player[:hand].include?(card)
+            },
             :autocomplete => lambda {|input|
-              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-                [*x[:type]].include?(:action) && x[:name] =~ /^#{input}/i
+              suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
+                prompt[:completions][x] && x[:name] =~ /^#{input}/i
               }
               suggest ? suggest[:name] : nil
             },
@@ -93,20 +96,23 @@ module Dominion
           }
           self.prompt = {
             :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
+            :completions => lambda {|card| 
+              card[:cost] <= treasure(player)
+            },
             :autocomplete => lambda {|input|
               suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                x[:cost] <= treasure(player) && x[:name] =~ /^#{Regexp.escape(input)}/i
+                prompt[:completions][x] && x[:name] =~ /^#{Regexp.escape(input)}/i
               }
               suggest ? suggest[:name] : nil
             },
             :color  => :magenta_back,
             :accept => lambda {|input|
+              self.prompt = nil
               if input
                 buy_card(board, player, input)
               else
                 player[:buys] = 0
               end
-              self.prompt = nil
             }
           }
         else
