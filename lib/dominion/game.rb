@@ -68,17 +68,9 @@ module Dominion
 
           self.prompt = {
             :prompt      => "action (#{player[:actions]} left)?",
-            :autocomplete => {
-              :card_active => lambda {|card|
-                [*card[:type]].include?(:action) && player[:hand].include?(card)
-              },
-              :strategy => lambda {|input|
-                suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                  prompt[:autocomplete][:card_active][x] && x[:name] =~ /^#{input}/i
-                }
-                suggest ? suggest[:name] : nil
-              }
-            },
+            :autocomplete => Input::Autocomplete.cards {|card|
+              [*card[:type]].include?(:action) && player[:hand].include?(card)
+            }[self],
             :color  => :green_back,
             :accept => lambda {|input|
               self.prompt = nil
@@ -92,17 +84,9 @@ module Dominion
         elsif player[:buys] > 0 # TODO: option to skip copper buys
           self.prompt = {
             :prompt      => "buy (#{treasure(player)}/#{player[:buys]} left)?",
-            :autocomplete => {
-              :card_active => lambda {|card|
-                card[:cost] <= treasure(player)
-              },
-              :strategy => lambda {|input|
-                suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                  prompt[:autocomplete][:card_active][x] && x[:name] =~ /^#{Regexp.escape(input)}/i
-                }
-                suggest ? suggest[:name] : nil
-              }
-            },
+            :autocomplete => Input::Autocomplete.cards {|card|
+              card[:cost] <= treasure(player)
+            }[self],
             :color  => :magenta_back,
             :accept => lambda {|input|
               self.prompt = nil

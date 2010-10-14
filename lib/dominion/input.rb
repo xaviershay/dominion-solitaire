@@ -34,6 +34,20 @@ module Dominion
     end
 
     class Autocomplete
+      def self.cards(&match_func)
+        lambda {|game| {
+          :card_active => lambda {|card|
+            match_func.call(card)
+          },
+          :strategy => lambda {|input|
+            suggest = input.length == 0 ? nil : game.board.map(&:first).detect {|x|
+              match_func.call(x) && x[:name] =~ /^#{input}/i
+            }
+            suggest ? suggest[:name] : nil
+          }
+        }}
+      end
+
       def self.cards_on_board(match_func = lambda {|x| true })
         lambda {|game|
           {
