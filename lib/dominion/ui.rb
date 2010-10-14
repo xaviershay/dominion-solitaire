@@ -53,6 +53,33 @@ class Dominion::UI::NCurses < Dominion::Engine
     endwin
   end
 
+  def colors
+    {
+      :white        => 0,
+      :yellow       => 3,
+      :blue         => 4,
+      :red          => 1,
+      :cyan_back    => 14,
+      :green_back   => 10,
+      :magenta_back => 13,
+      :yellow_back  => 11
+    }
+  end
+
+  def bold_with_color(window, game, color, text)
+    color_index = colors[color] || raise("Unknown color: #{color}")
+    wattr_set window, A_BOLD, color_index, nil
+
+    waddstr(window, text.to_s)
+  end
+
+  def print_with_color(window, game, color, text)
+    color_index = colors[color] || raise("Unknown color: #{color}")
+    wattr_set window, A_NORMAL, color_index, nil
+
+    waddstr(window, text.to_s)
+  end
+
   def draw(game, ctx = {})
     ctx[:windows] ||= {}
     curs_set 0
@@ -62,36 +89,8 @@ class Dominion::UI::NCurses < Dominion::Engine
       :coords => [14, 80, 0, 0],
       :title  => 'Board',
       :draw   => lambda do |window, game|
-        bold_with_color = lambda do |color, text|
-          color_index = {
-            :white        => 0,
-            :yellow       => 3,
-            :blue         => 4,
-            :red          => 1,
-            :cyan_back    => 14,
-            :green_back   => 10,
-            :magenta_back => 13,
-            :yellow_back  => 11
-          }[color] || raise("Unknown color: #{color}")
-          wattr_set window, A_BOLD, color_index, nil
-
-          waddstr(window, text.to_s)
-        end
-        print_with_color = lambda do |color, text|
-          color_index = {
-            :white        => 0,
-            :yellow       => 3,
-            :blue         => 4,
-            :red          => 1,
-            :cyan_back    => 14,
-            :green_back   => 10,
-            :magenta_back => 13,
-            :yellow_back  => 11
-          }[color] || raise("Unknown color: #{color}")
-          wattr_set window, A_NORMAL, color_index, nil
-
-          waddstr(window, text.to_s)
-        end
+        bwc = lambda {|color, text| bold_with_color(window, game, color, text)}
+        pwc = lambda {|color, text| print_with_color(window, game, color, text)}
 
         type_char = [
           [:reaction, 'R'],
@@ -120,32 +119,32 @@ class Dominion::UI::NCurses < Dominion::Engine
         header.each_with_index do |pile, i|
           card = pile.first
 
-          print_with_color[:white, ' '] if i > 0
-          print_with_color[:yellow, card[:cost]]
-          print_with_color[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
-          print_with_color[:blue,   pile.size]
-          print_with_color[:white,  " %s" % card[:name]]
+          pwc[:white, ' '] if i > 0
+          pwc[:yellow, card[:cost]]
+          pwc[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
+          pwc[:blue,   pile.size]
+          pwc[:white,  " %s" % card[:name]]
         end
-print_with_color[:white, "\n"] 
+        pwc[:white, "\n"] 
         body.sort_by {|x| [x[0][:cost], x[0][:name]] }.each do |pile|
           card = pile.first
 
-          print_with_color[:white, ' ']
-          print_with_color[:yellow, card[:cost]]
-          print_with_color[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
-          print_with_color[:blue,   '%-2i' % pile.size]
+          pwc[:white, ' ']
+          pwc[:yellow, card[:cost]]
+          pwc[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
+          pwc[:blue,   '%-2i' % pile.size]
           if game.card_active?(card)
-            bold_with_color[:white,  " %-#{max_name_length}s " % card[:name]]
+            bwc[:white,  " %-#{max_name_length}s " % card[:name]]
           else
-            print_with_color[:white,  " %-#{max_name_length}s " % card[:name]]
+            pwc[:white,  " %-#{max_name_length}s " % card[:name]]
           end
 
-          print_with_color[:cyan_back,    card[:cards] || ' ']
-          print_with_color[:green_back,   card[:actions] || ' ']
-          print_with_color[:magenta_back, card[:buys] || ' ']
-          print_with_color[:yellow_back,  card[:gold] || ' ']
+          pwc[:cyan_back,    card[:cards] || ' ']
+          pwc[:green_back,   card[:actions] || ' ']
+          pwc[:magenta_back, card[:buys] || ' ']
+          pwc[:yellow_back,  card[:gold] || ' ']
 
-          print_with_color[:white,  " %-#{max_name_length}s\n" % card[:description]]
+          pwc[:white,  " %-#{max_name_length}s\n" % card[:description]]
         end
       end
     }, {
@@ -159,61 +158,33 @@ print_with_color[:white, "\n"]
       ],
       :coords => [10, 80, 14, 0],
       :draw => lambda do |window, game|
-        bold_with_color = lambda do |color, text|
-          color_index = {
-            :white        => 0,
-            :yellow       => 3,
-            :blue         => 4,
-            :red          => 1,
-            :cyan_back    => 14,
-            :green_back   => 10,
-            :magenta_back => 13,
-            :yellow_back  => 11
-          }[color] || raise("Unknown color: #{color}")
-          wattr_set window, A_BOLD, color_index, nil
-
-          waddstr(window, text.to_s)
-        end
-        print_with_color = lambda do |color, text|
-          color_index = {
-            :white        => 0,
-            :yellow       => 3,
-            :blue         => 4,
-            :red          => 1,
-            :cyan_back    => 14,
-            :green_back   => 10,
-            :magenta_back => 13,
-            :yellow_back  => 11
-          }[color] || raise("Unknown color: #{color}")
-          wattr_set window, A_NORMAL, color_index, nil
-
-          waddstr(window, text.to_s)
-        end
+        bwc = lambda {|color, text| bold_with_color(window, game, color, text)}
+        pwc = lambda {|color, text| print_with_color(window, game, color, text)}
         
-        print_with_color[:white, "Hand: "]
+        pwc[:white, "Hand: "]
         line_length = 6
         game.player[:hand].each_with_index do |card, index|
           suffix = index == game.player[:hand].length - 1 ? '' : ', '
           if game.card_active?(card)
-            bold_with_color[:white, card[:name] + suffix]
+            bwc[:white, card[:name] + suffix]
           else
-            print_with_color[:white, card[:name] + suffix]
+            pwc[:white, card[:name] + suffix]
           end
           line_length += (card[:name] + suffix).length
         end
 
         # TODO: print ' ' doesn't work :(
-        print_with_color[:white, " " * (77 - line_length)] if line_length < 76
-        print_with_color[:white, "\n"]
+        pwc[:white, " " * (77 - line_length)] if line_length < 76
+        pwc[:white, "\n"]
         played = "Played: %s" % game.player[:played].map {|x| x[:name] }.join(", ")
-        print_with_color[:white, played]
-        print_with_color[:white, " " * (77 - played.length)] if played.length < 76
-        print_with_color[:white, "\n"]
+        pwc[:white, played]
+        pwc[:white, " " * (77 - played.length)] if played.length < 76
+        pwc[:white, "\n"]
 
         unless game.player[:revealed].empty?
           revealed = "Revealed: %s\n" % game.player[:revealed].map {|x| x[:name] }.join(", ")
-          print_with_color[:white, revealed]
-          print_with_color[:white, " " * (77 - revealed.length)]
+          pwc[:white, revealed]
+          pwc[:white, " " * (77 - revealed.length)]
         end
 
       end
@@ -221,38 +192,22 @@ print_with_color[:white, "\n"]
       :coords => [1, 80, 24, 0],
       :border => false,
       :draw => lambda do |window, game|
-        print_with_color = lambda do |color, text|
-          color_index = {
-            :white        => 7,
-            :yellow       => 3,
-            :blue         => 4,
-            :red          => 1,
-            :cyan_back    => 14,
-            :green_back   => 10,
-            :magenta_back => 13,
-            :yellow_back  => 11
-          }[color] || raise("Unknown color: #{color}")
-          wattr_set window, A_NORMAL, color_index, nil
-
-          waddstr(window, text.to_s)
-        end
+        pwc = lambda {|color, text| print_with_color(window, game, color, text)}
 
         if game.prompt
-          #print_with_color[:yellow_back, "%-80s" % ""]
-
           suggest = game.prompt[:autocomplete][:strategy][input_buffer].to_s
 
-          print_with_color[game.prompt[:color] || :yellow_back, "%s %s" % [
+          pwc[game.prompt[:color] || :yellow_back, "%s %s" % [
             game.prompt[:prompt],
             input_buffer]]
 
           fill = suggest[input_buffer.length..-1]
 
           if fill && fill.length > 0
-            print_with_color[:red, "%s" % fill]
+            pwc[:red, "%s" % fill]
           end
         else
-          print_with_color[:green_back, "%-80s" % " "]
+          pwc[:green_back, "%-80s" % " "]
         end
       end
     }].map do |window|
