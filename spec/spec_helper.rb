@@ -42,6 +42,22 @@ Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
         game.prompt[:autocomplete][card[:name][0..2]].should == nil
         game.card_active[card].should == false
       end
+
+    when :buyable_cards then
+      cards = game.board.map(&:first)
+      to_match = cards.select {|x| x[:cost] <= game.treasure(game.player) }
+      to_not_match = cards - to_match
+
+      to_match.each do |card|
+        game.prompt[:autocomplete][card[:name][0..2]].should == card[:name]
+        game.card_active[card].should == true
+      end
+
+      to_not_match.each do |card|
+        game.prompt[:autocomplete][card[:name][0..2]].should == nil
+        game.card_active[card].should == false
+      end
+
     end
   end
 
@@ -133,6 +149,7 @@ module CardMacros
   end
 
   def player
+    subject unless @game
     @game.player
   end
 

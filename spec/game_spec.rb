@@ -26,12 +26,14 @@ describe Dominion::Game do
         end
       end
 
-      describe 'when buys available' do
-        it 'marks all buyable cards active' do
+      describe 'when no actions left and buys available' do
+        before do
+          player[:actions] = 0
+
+          subject.step
         end
 
-        it 'prompts to select a card to buy' do
-        end
+        it { should have_prompt_with_autocomplete :buyable_cards }
       end
 
       describe 'with no actions and no buys' do
