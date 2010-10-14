@@ -1,43 +1,21 @@
 require 'dominion/ui'
 require 'dominion/util'
 require 'dominion/player'
+require 'dominion/board'
 require 'dominion/input'
 
 module Dominion
   class Game
     include Dominion::Util
     include Dominion::Player
+    include Dominion::Board
 
-    attr_accessor :engine, :board, :cards, :turn
+    attr_accessor :engine, :cards, :turn
 
     def initialize
       self.cards = {}
       self.turn  = 1
       self.engine = Dominion::UI::NCurses.new
-    end
-
-    def default_cards
-      [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
-    end
-
-    def board
-      @board ||= begin
-        (default_cards + randomize(@cards.keys - default_cards)[0..9]).map {|x|
-          if @cards.has_key?(x) 
-            [card(x)] * ({
-              :copper => 60,
-              :silver => 40,
-              :gold   => 30
-            }[x] || 8)
-          else
-            nil
-          end
-        }.compact
-      end
-    end
-
-    def card(key)
-      cards[key] || raise("No card #{key}")
     end
 
     def add_card(key, values)
