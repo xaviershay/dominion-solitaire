@@ -72,14 +72,10 @@ module Dominion
               [*card[:type]].include?(:action) && player[:hand].include?(card)
             }[self],
             :color  => :green_back,
-            :accept => lambda {|input|
-              self.prompt = nil
-              if input
-                play_card(player, input)
-              else
-                player[:actions] = 0
-              end
-            }
+            :accept => accept(
+              :accept  => lambda {|input| play_card(player, input) },
+              :decline => lambda {|input| player[:actions] = 0 }
+            )
           }
         elsif player[:buys] > 0 # TODO: option to skip copper buys
           self.prompt = {
@@ -88,14 +84,10 @@ module Dominion
               card[:cost] <= treasure(player)
             }[self],
             :color  => :magenta_back,
-            :accept => lambda {|input|
-              self.prompt = nil
-              if input
-                buy_card(board, player, input)
-              else
-                player[:buys] = 0
-              end
-            }
+            :accept => accept(
+              :accept  => lambda {|input| buy_card(board, player, input) },
+              :decline => lambda {|input| player[:buys] = 0 }
+            )
           }
         else
           # Run the cleanup phase
@@ -109,6 +101,17 @@ module Dominion
         ctx = engine.draw(self)
         engine.step(self, ctx)
       end
+    end
+    
+    def accept(config)
+      lambda {|input|
+        self.prompt = nil
+        if input
+          config[:accept][input]
+        else
+          config[:decline][input]
+        end
+      }
     end
 
     def run
