@@ -57,6 +57,29 @@ Spec::Matchers.define :have_cards do |cards|
   end
 end
 
+Spec::Matchers.define :have_stack do |card, number|
+  match do |board|
+    stack = board.detect {|x| x[0][:key] == card }
+    if number
+      stack && stack.length == number
+    else
+      stack
+    end
+  end
+
+  failure_message_for_should do |board|
+    "expected board #{format_board(board)} to have #{number} x #{card}"
+  end
+
+  failure_message_for_should_not do |board|
+    "expected board #{format_board(board)} to not have #{card}"
+  end
+
+  def format_board(board)
+    "|%s|" % board.map {|x| "%i x %s" % [x.length, x[0][:name]] }.join(", ")
+  end
+end
+
 module CardMacros
   def game_with_cards(*cards)
     @game = Dominion::Game.new.tap do |game|

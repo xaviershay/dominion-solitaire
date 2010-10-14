@@ -1,4 +1,6 @@
 module Dominion
+  # Methods to populate the initial board. Requires an accessor +cards+ in
+  # the containing class to contain an array of all the loaded cards
   module Board
     DEFAULT_CARDS = [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
     DEFAULT_AMOUNT = 8

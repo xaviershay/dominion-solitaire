@@ -20,7 +20,7 @@ module Dominion
 
     def add_card(key, values)
       key = key.to_sym
-      @cards[key] = add_defaults_to_card(key, values)
+      cards[key] = add_defaults_to_card(key, values)
     end
 
     def treasure(player)
