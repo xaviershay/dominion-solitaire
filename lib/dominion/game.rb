@@ -8,33 +8,12 @@ module Dominion
     include Dominion::Util
     include Dominion::Player
 
-    attr_accessor :board, :cards, :player, :turn
+    attr_accessor :engine, :board, :cards, :turn
 
     def initialize
-      @cards = {}
-      @turn  = 1
-
+      self.cards = {}
+      self.turn  = 1
       self.engine = Dominion::UI::NCurses.new
-    end
-
-    def player
-      @player ||= {
-        :actions => 1,
-        :buys => 1,
-        :gold => 0,
-        :hand    => [],
-        :discard => [],
-        :trash   => [],
-        :played  => [],
-        :revealed => [],
-        :bought  => [],
-        :discarded => [],
-        :trashed => [],
-        :deck => randomize(
-           [cards[:estate]] * 3 +
-           [cards[:copper]] * 7
-        ).compact
-      }
     end
 
     def default_cards
@@ -55,9 +34,6 @@ module Dominion
           end
         }.compact
       end
-#         [card(:copper)] * 60,
-#         [card(:silver)] * 40,
-#         [card(:gold)] * 30,
     end
 
     def card(key)
@@ -80,17 +56,6 @@ module Dominion
       }
     end
 
-    def test
-      print_board(board)
-
-      require 'pp'
-      5.times { draw_card(player) }
-      print_player(player)
-      play_card(player, :cellar)
-      pp player
-    end
-    
-    attr_accessor :engine
     def run
       cleanup(board, player)
       engine.setup

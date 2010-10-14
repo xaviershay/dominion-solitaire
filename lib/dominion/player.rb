@@ -1,5 +1,25 @@
 module Dominion
   module Player
+    def player
+      @player ||= {
+        :actions   => 1,
+        :buys      => 1,
+        :gold      => 0,
+        :hand      => [],
+        :discard   => [],
+        :trash     => [],
+        :played    => [],
+        :revealed  => [],
+        :bought    => [],
+        :discarded => [],
+        :trashed   => [],
+        :deck      => randomize(
+           [cards[:estate]] * 3 +
+           [cards[:copper]] * 7
+        ).compact
+      }
+    end
+
     def move_card(card, from, to)
       key = if card.is_a?(Symbol)
         card = from.detect {|x| x[:key] == card } 
