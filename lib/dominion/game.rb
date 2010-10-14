@@ -26,6 +26,14 @@ module Dominion
       (self.card_active || proc { false })[card]
     end
 
+    def prompt
+      engine.prompt
+    end
+
+    def prompt=(value)
+      engine.prompt = value
+    end
+
     def add_card(key, values)
       key = key.to_sym
       cards[key] = add_defaults_to_card(key, values)
@@ -49,7 +57,7 @@ module Dominion
 
       while running
         skip = false
-        if engine.prompt.nil?
+        if self.prompt.nil?
           if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
             autoplay = [:village, :market, :laboratory]
             unless player[:hand].detect {|x| x[:key] == :throne_room }
@@ -62,7 +70,7 @@ module Dominion
             next if skip
 
             self.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
-            engine.prompt = {
+            self.prompt = {
               :prompt => "action (#{player[:actions]} left)?",
               :autocomplete => lambda {|input|
                 suggest = input.length == 0 ? nil : player[:hand].detect {|x|
@@ -72,7 +80,7 @@ module Dominion
               },
               :color  => :green_back,
               :accept => lambda {|input|
-                engine.prompt = nil
+                self.prompt = nil
                 if input
                   play_card(player, input)
                 else
@@ -84,7 +92,7 @@ module Dominion
             self.card_active = lambda {|card| 
               card[:cost] <= treasure(player)
             }
-            engine.prompt = {
+            self.prompt = {
               :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
               :autocomplete => lambda {|input|
                 suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
@@ -99,7 +107,7 @@ module Dominion
                 else
                   player[:buys] = 0
                 end
-                engine.prompt = nil
+                self.prompt = nil
               }
             }
           else
@@ -124,8 +132,6 @@ module Dominion
     end
 
     def wrap_behaviour(&block)
-      prompt = engine.prompt
-
       if prompt
         # Add an after function to the prompt, rather than running the code now
         existing = prompt[:accept]

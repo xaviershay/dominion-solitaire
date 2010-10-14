@@ -13,16 +13,16 @@ end
 
 Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
   match do |game|
-    game.engine.prompt
+    game.prompt
       # TODO: Check auto complete
     begin
       old_player = game.player.dup
 
       game.player[:deck] = [game.card(:estate)]
       game.player[:hand] = [game.card(:copper)]
-      game.engine.prompt[:autocomplete]['co'].should == 'Copper'
-      game.engine.prompt[:autocomplete]['es'].should == nil
-      game.engine.prompt[:autocomplete]['ce'].should == nil
+      game.prompt[:autocomplete]['co'].should == 'Copper'
+      game.prompt[:autocomplete]['es'].should == nil
+      game.prompt[:autocomplete]['ce'].should == nil
     ensure
       game.player = old_player
     end
@@ -35,7 +35,7 @@ end
 
 Spec::Matchers.define :have_prompt do
   match do |game|
-    game.engine.prompt
+    game.prompt
   end
 
   failure_message_for_should do |game|
@@ -100,7 +100,7 @@ module CardMacros
   end
 
   def input(key)
-    prompt = @game.engine.prompt
+    prompt = @game.prompt
 
     prompt[:accept][prompt[:autocomplete][key]] if prompt
   end

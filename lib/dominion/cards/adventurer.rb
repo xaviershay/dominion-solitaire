@@ -15,11 +15,11 @@ Dominion::CARDS[:adventurer] = {
       end
     end
 
-    game.engine.prompt = {
+    game.prompt = {
       :prompt       => "Press enter to continue",
       :autocomplete => lambda {|input| nil },
       :accept       => lambda {|input|
-        game.engine.prompt = nil
+        game.prompt = nil
 
         treasure[].each do |t|
           game.move_card(t, player[:revealed], player[:hand])

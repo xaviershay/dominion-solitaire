@@ -7,7 +7,7 @@ Dominion::CARDS[:spy] = {
   :behaviour   => lambda {|game, card|
     card = game.reveal_card(game.player)
 
-    game.engine.prompt = {
+    game.prompt = {
       :prompt       => "Discard #{card[:name]} (y/N)?",
       :autocomplete => Dominion::Input::Autocomplete.boolean[game],
       :accept       => lambda {|input|
@@ -17,7 +17,7 @@ Dominion::CARDS[:spy] = {
           game.move_card(card, game.player[:revealed], game.player[:deck])
         end
 
-        game.engine.prompt = nil
+        game.prompt = nil
       }
     } if card
   }

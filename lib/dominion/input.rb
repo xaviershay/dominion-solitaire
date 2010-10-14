@@ -4,28 +4,28 @@ module Dominion
       lambda {|game, card|
         inputs = []
 
-        game.engine.prompt = {
+        game.prompt = {
           :prompt       => opts[:prompt].call(game, inputs),
           :autocomplete => opts[:strategy].call(game),
           :accept       => lambda {|input|
             if input
               inputs << input
-              existing = game.engine.prompt
-              game.engine.prompt = nil
+              existing = game.prompt
+              game.prompt = nil
               opts[:each].call(game, input) if opts[:each]
 
 
-              unless game.engine.prompt || (opts[:max] && inputs.length >= opts[:max])
-                game.engine.prompt = existing
-                game.engine.prompt[:prompt] = opts[:prompt].call(game, inputs)
+              unless game.prompt || (opts[:max] && inputs.length >= opts[:max])
+                game.prompt = existing
+                game.prompt[:prompt] = opts[:prompt].call(game, inputs)
               end
             else
               if !opts[:min] || inputs.length >= opts[:min]
-                game.engine.prompt = nil
+                game.prompt = nil
               end
             end
 
-            if opts[:after] && game.engine.prompt.nil?
+            if opts[:after] && game.prompt.nil?
               opts[:after].call(game, inputs)
             end
           }

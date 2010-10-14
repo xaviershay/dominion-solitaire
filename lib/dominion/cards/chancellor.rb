@@ -3,7 +3,7 @@ Dominion::CARDS[:chancellor] = {
   :cost => 3,
   :gold => 2,
   :behaviour => lambda {|game, card|
-    game.engine.prompt = {
+    game.prompt = {
       :prompt       => "Discard your deck (y/N)?",
       :autocomplete => Dominion::Input::Autocomplete.boolean[game],
       :accept       => lambda {|input|
@@ -12,7 +12,7 @@ Dominion::CARDS[:chancellor] = {
           game.player[:deck] = []
         end
 
-        game.engine.prompt = nil
+        game.prompt = nil
       }
     }
   }
