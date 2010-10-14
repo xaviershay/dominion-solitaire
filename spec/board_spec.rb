@@ -5,9 +5,7 @@ describe Dominion::Game do
     DB = Dominion::Board
 
     subject do
-      Dominion::Game.new.tap {|game|
-        game.load_cards(default_card, defined_card)
-      }.board
+      game_with_cards(default_card, defined_card).board
     end
 
     include Dominion::Board
