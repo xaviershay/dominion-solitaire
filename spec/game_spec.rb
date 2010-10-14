@@ -2,12 +2,42 @@ require 'spec_helper'
 
 describe Dominion::Game do
   subject do
-    game_with_cards(:copper)
+    game_with_cards(:copper, :smithy, :chancellor)
   end
 
   describe '#step' do
     it 'does not blow up' do
       subject.step
+    end
+
+    describe 'when no prompt' do
+      describe 'when actions available' do
+        describe 'when autoplay actions in hand' do
+        end
+
+        describe 'when actions in hand' do
+          before do
+            hand cards(:copper, 1) + cards(:smithy, 1)
+
+            subject.step
+          end
+
+          it { should have_prompt_with_autocomplete :actions_in_hand }
+        end
+      end
+
+      describe 'when buys available' do
+        it 'marks all buyable cards active' do
+        end
+
+        it 'prompts to select a card to buy' do
+        end
+      end
+
+      describe 'with no actions and no buys' do
+        it 'cleans up and progresses to the next turn' do
+        end
+      end
     end
   end
 

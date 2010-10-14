@@ -13,18 +13,35 @@ end
 
 Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
   match do |game|
-    game.prompt
-      # TODO: Check auto complete
-    begin
-      old_player = game.player.dup
+    case autocomplete_strategy
+    when :cards_in_hand then
+      # TODO: Make this match the :actions_in_hand one
+      game.prompt
+      begin
+        old_player = game.player.dup
 
-      game.player[:deck] = [game.card(:estate)]
-      game.player[:hand] = [game.card(:copper)]
-      game.prompt[:autocomplete]['co'].should == 'Copper'
-      game.prompt[:autocomplete]['es'].should == nil
-      game.prompt[:autocomplete]['ce'].should == nil
-    ensure
-      game.player = old_player
+        game.player[:deck] = [game.card(:estate)]
+        game.player[:hand] = [game.card(:copper)]
+        game.prompt[:autocomplete]['co'].should == 'Copper'
+        game.prompt[:autocomplete]['es'].should == nil
+        game.prompt[:autocomplete]['ce'].should == nil
+      ensure
+        game.player = old_player
+      end
+
+    when :actions_in_hand then
+      to_match = game.player[:hand].select {|x| [*x[:type]].include?(:action) }
+      to_not_match = game.player[:hand] - to_match
+
+      to_match.each do |card|
+        game.prompt[:autocomplete][card[:name][0..2]].should == card[:name]
+        game.card_active[card].should == true
+      end
+
+      to_not_match.each do |card|
+        game.prompt[:autocomplete][card[:name][0..2]].should == nil
+        game.card_active[card].should == false
+      end
     end
   end
 
@@ -93,6 +110,7 @@ module CardMacros
   end
 
   def card(key)
+    subject unless @game
     @game.card(key)
   end
 

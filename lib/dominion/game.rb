@@ -54,6 +54,7 @@ module Dominion
       skip = false
       if self.prompt.nil?
         if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
+          # --- AUTOPLAY SECTION
           autoplay = [:village, :market, :laboratory]
           unless player[:hand].detect {|x| x[:key] == :throne_room }
             while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
@@ -62,9 +63,12 @@ module Dominion
             end
           end
 
-          next if skip
+          return if skip
+          # --- END AUTOPLAY
 
-          self.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
+          self.card_active = lambda {|card|
+            [*card[:type]].include?(:action) && player[:hand].include?(card)
+          }
           self.prompt = {
             :prompt => "action (#{player[:actions]} left)?",
             :autocomplete => lambda {|input|
@@ -118,6 +122,7 @@ module Dominion
         engine.step(self, ctx)
       end
     end
+
     def run
       cleanup(board, player)
       engine.setup
