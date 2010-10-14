@@ -84,6 +84,7 @@ module CardMacros
   def game_with_cards(*cards)
     @game = Dominion::Game.new.tap do |game|
       game.load_cards(*cards + [:copper, :estate])
+      game.engine = Dominion::Engine.new
     end
   end
 
@@ -153,4 +154,7 @@ def describe_card(key, opts = {}, &block)
 
     instance_eval(&block)
   end
+end
+
+def log(*args)
 end

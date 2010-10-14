@@ -7,6 +7,7 @@ def log(message)
 end
 
 require 'dominion/game'
+require 'dominion/ui'
 
 game = Dominion::Game.new
 
@@ -17,4 +18,5 @@ if ARGV[0]
 else
   game.load_all_cards
 end
+game.engine = Dominion::UI::NCurses.new
 game.run

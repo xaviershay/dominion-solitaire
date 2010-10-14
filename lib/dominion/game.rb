@@ -1,4 +1,4 @@
-require 'dominion/ui'
+require 'dominion/engine'
 require 'dominion/util'
 require 'dominion/player'
 require 'dominion/board'
@@ -15,7 +15,7 @@ module Dominion
     def initialize
       self.cards = {}
       self.turn  = 1
-      self.engine = Dominion::UI::NCurses.new
+      self.engine = Dominion::Engine.new
     end
 
     # An active card is one that can be interacted with. They are generally
@@ -50,78 +50,80 @@ module Dominion
       }
     end
 
+    def step
+      skip = false
+      if self.prompt.nil?
+        if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
+          autoplay = [:village, :market, :laboratory]
+          unless player[:hand].detect {|x| x[:key] == :throne_room }
+            while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
+              play_card(player, to_play[:name])
+              skip = true
+            end
+          end
+
+          next if skip
+
+          self.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
+          self.prompt = {
+            :prompt => "action (#{player[:actions]} left)?",
+            :autocomplete => lambda {|input|
+              suggest = input.length == 0 ? nil : player[:hand].detect {|x|
+                [*x[:type]].include?(:action) && x[:name] =~ /^#{input}/i
+              }
+              suggest ? suggest[:name] : nil
+            },
+            :color  => :green_back,
+            :accept => lambda {|input|
+              self.prompt = nil
+              if input
+                play_card(player, input)
+              else
+                player[:actions] = 0
+              end
+            }
+          }
+        elsif player[:buys] > 0 # TODO: option to skip copper buys
+          self.card_active = lambda {|card| 
+            card[:cost] <= treasure(player)
+          }
+          self.prompt = {
+            :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
+            :autocomplete => lambda {|input|
+              suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
+                x[:cost] <= treasure(player) && x[:name] =~ /^#{Regexp.escape(input)}/i
+              }
+              suggest ? suggest[:name] : nil
+            },
+            :color  => :magenta_back,
+            :accept => lambda {|input|
+              if input
+                buy_card(board, player, input)
+              else
+                player[:buys] = 0
+              end
+              self.prompt = nil
+            }
+          }
+        else
+          # Run the cleanup phase
+          cleanup(board, player)
+          skip = true
+          @turn += 1
+        end
+      end
+
+      unless skip
+        ctx = engine.draw(self)
+        engine.step(self, ctx)
+      end
+    end
     def run
       cleanup(board, player)
       engine.setup
-      running = true
 
-      while running
-        skip = false
-        if self.prompt.nil?
-          if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
-            autoplay = [:village, :market, :laboratory]
-            unless player[:hand].detect {|x| x[:key] == :throne_room }
-              while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
-                play_card(player, to_play[:name])
-                skip = true
-              end
-            end
-
-            next if skip
-
-            self.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
-            self.prompt = {
-              :prompt => "action (#{player[:actions]} left)?",
-              :autocomplete => lambda {|input|
-                suggest = input.length == 0 ? nil : player[:hand].detect {|x|
-                  [*x[:type]].include?(:action) && x[:name] =~ /^#{input}/i
-                }
-                suggest ? suggest[:name] : nil
-              },
-              :color  => :green_back,
-              :accept => lambda {|input|
-                self.prompt = nil
-                if input
-                  play_card(player, input)
-                else
-                  player[:actions] = 0
-                end
-              }
-            }
-          elsif player[:buys] > 0 # TODO: option to skip copper buys
-            self.card_active = lambda {|card| 
-              card[:cost] <= treasure(player)
-            }
-            self.prompt = {
-              :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
-              :autocomplete => lambda {|input|
-                suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                  x[:cost] <= treasure(player) && x[:name] =~ /^#{Regexp.escape(input)}/i
-                }
-                suggest ? suggest[:name] : nil
-              },
-              :color  => :magenta_back,
-              :accept => lambda {|input|
-                if input
-                  buy_card(board, player, input)
-                else
-                  player[:buys] = 0
-                end
-                self.prompt = nil
-              }
-            }
-          else
-            # Run the cleanup phase
-            cleanup(board, player)
-            skip = true
-            @turn += 1
-          end
-        end
-
-        unless skip
-          ctx = engine.draw(self)
-          engine.step(self, ctx)
-        end
+      while true
+        step
       end
     ensure
       engine.finalize if engine

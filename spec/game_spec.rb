@@ -5,6 +5,12 @@ describe Dominion::Game do
     game_with_cards(:copper)
   end
 
+  describe '#step' do
+    it 'does not blow up' do
+      subject.step
+    end
+  end
+
   describe '#card_active?' do
     let(:check_card) { card(:copper) }
 

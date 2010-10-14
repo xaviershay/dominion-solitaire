@@ -6,7 +6,7 @@ module Dominion
     def draw(game, ctx = {})
     end
 
-    def step(ctx)
+    def step(game, ctx)
     end
 
     def finalize
