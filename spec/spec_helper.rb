@@ -22,9 +22,9 @@ Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
 
         game.player[:deck] = [game.card(:estate)]
         game.player[:hand] = [game.card(:copper)]
-        game.prompt[:autocomplete]['co'].should == 'Copper'
-        game.prompt[:autocomplete]['es'].should == nil
-        game.prompt[:autocomplete]['ce'].should == nil
+        game.prompt[:autocomplete][:strategy]['co'].should == 'Copper'
+        game.prompt[:autocomplete][:strategy]['es'].should == nil
+        game.prompt[:autocomplete][:strategy]['ce'].should == nil
       ensure
         game.player = old_player
       end
@@ -34,13 +34,13 @@ Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
       to_not_match = game.player[:hand] - to_match
 
       to_match.each do |card|
-        game.prompt[:autocomplete][card[:name][0..2]].should == card[:name]
-        game.card_active[card].should == true
+        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == card[:name]
+        game.prompt[:autocomplete][:card_active][card].should == true
       end
 
       to_not_match.each do |card|
-        game.prompt[:autocomplete][card[:name][0..2]].should == nil
-        game.card_active[card].should == false
+        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == nil
+        game.prompt[:autocomplete][:card_active][card].should == false
       end
 
     when :buyable_cards then
@@ -49,13 +49,13 @@ Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
       to_not_match = cards - to_match
 
       to_match.each do |card|
-        game.prompt[:autocomplete][card[:name][0..2]].should == card[:name]
-        game.card_active[card].should == true
+        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == card[:name]
+        game.prompt[:autocomplete][:card_active][card].should == true
       end
 
       to_not_match.each do |card|
-        game.prompt[:autocomplete][card[:name][0..2]].should == nil
-        game.card_active[card].should == false
+        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == nil
+        game.prompt[:autocomplete][:card_active][card].should == false
       end
 
     end
@@ -137,7 +137,7 @@ module CardMacros
   def input(key)
     prompt = @game.prompt
 
-    prompt[:accept][prompt[:autocomplete][key]] if prompt
+    prompt[:accept][prompt[:autocomplete][:strategy][key]] if prompt
   end
 
   def playing_card(card = nil)

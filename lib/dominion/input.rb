@@ -5,8 +5,8 @@ module Dominion
         inputs = []
 
         game.prompt = {
-          :prompt       => opts[:prompt].call(game, inputs),
-          :autocomplete => opts[:strategy].call(game),
+          :prompt       => opts[:prompt][game, inputs],
+          :autocomplete => opts[:strategy][game],
           :accept       => lambda {|input|
             if input
               inputs << input
@@ -36,30 +36,39 @@ module Dominion
     class Autocomplete
       def self.cards_on_board(match_func = lambda {|x| true })
         lambda {|game|
-          lambda {|input|
-            suggest = input.length == 0 ? nil : game.board.detect {|x|
-              x[0][:name] =~ /^#{input}/i && match_func[x[0]]
+          {
+            :card_active => lambda {|card| match_func[card] },
+            :strategy    => lambda {|input|
+              suggest = input.length == 0 ? nil : game.board.detect {|x|
+                x[0][:name] =~ /^#{input}/i && match_func[x[0]]
+              }
+              suggest ? suggest[0][:name] : nil
             }
-            suggest ? suggest[0][:name] : nil
           }
         }
       end
 
       def self.cards_in_hand(match_func = lambda {|x| true })
         lambda {|game|
-          lambda {|input|
-            suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
-              x[:name] =~ /^#{input}/i && match_func[x]
+          {
+            :card_active => lambda {|card| match_func[card] },
+            :strategy    => lambda {|input|
+              suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
+                x[:name] =~ /^#{input}/i && match_func[x]
+              }
+              suggest ? suggest[:name] : nil
             }
-            suggest ? suggest[:name] : nil
           }
         }
       end
 
       def self.boolean
         lambda {|game|
-          lambda {|input|
-            %w(Y N).detect {|x| x == input.upcase } || nil
+          {
+            :card_active => lambda {|card| false },
+            :strategy    => lambda {|input|
+              %w(Y N).detect {|x| x == input.upcase } || nil
+            }
           }
         }
       end

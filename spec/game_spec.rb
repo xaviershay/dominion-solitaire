@@ -70,24 +70,20 @@ describe Dominion::Game do
   describe '#card_active?' do
     let(:check_card) { card(:copper) }
 
-    describe 'when no card_active proc is supplied' do
-      before do
-        subject.card_active = nil
-      end
-
-      specify do
-        subject.card_active?(check_card).should be_false
-      end
+    describe 'when no prompt' do
+      specify { subject.card_active?(check_card).should be_false }
     end
 
-    describe 'when a card_active proc is supplied' do
+    describe 'when prompt with autocomplete matching the given card' do
       before do
-        subject.card_active = lambda {|card| card[:key] }
+        subject.prompt = {
+          :autocomplete => {
+            :card_active => lambda {|card| card == check_card }
+          }
+        }
       end
 
-      specify do
-        subject.card_active?(check_card).should == check_card[:key]
-      end
+      specify { subject.card_active?(check_card).should be_true }
     end
   end
 end

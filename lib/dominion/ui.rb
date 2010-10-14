@@ -43,7 +43,7 @@ class Dominion::UI::NCurses < Dominion::Engine
     if game.prompt
       case ch
       when 10
-        autocompleted = game.prompt[:autocomplete][input_buffer]
+        autocompleted = game.prompt[:autocomplete][:strategy][input_buffer]
         if !(autocompleted == nil && input_buffer.length > 0)
           game.prompt[:accept][autocompleted]
         end
@@ -247,7 +247,7 @@ print_with_color[:white, "\n"]
         if game.prompt
           #print_with_color[:yellow_back, "%-80s" % ""]
 
-          suggest = game.prompt[:autocomplete][input_buffer].to_s
+          suggest = game.prompt[:autocomplete][:strategy][input_buffer].to_s
 
           print_with_color[game.prompt[:color] || :yellow_back, "%s %s" % [
             game.prompt[:prompt],

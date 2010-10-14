@@ -17,7 +17,10 @@ Dominion::CARDS[:library] = {
 
     game.prompt = {
       :prompt       => "Press enter to continue",
-      :autocomplete => lambda {|input| nil },
+      :autocomplete => {
+        :strategy    => lambda {|input| nil },
+        :card_active => lambda {|input| false }
+      },
       :accept       => lambda {|input|
         game.prompt = nil
 

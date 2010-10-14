@@ -10,7 +10,7 @@ module Dominion
     include Dominion::Player
     include Dominion::Board
 
-    attr_accessor :engine, :cards, :turn, :card_active
+    attr_accessor :engine, :cards, :turn
 
     def initialize
       self.cards = {}
@@ -23,7 +23,7 @@ module Dominion
     #
     #   card - a hash describing a card
     def card_active?(card)
-      (self.card_active || proc { false })[card]
+      self.prompt && self.prompt[:autocomplete][:card_active][card]
     end
 
     def prompt
@@ -66,19 +66,18 @@ module Dominion
           return if skip
           # --- END AUTOPLAY
 
-          self.card_active = lambda {|card|
-            [*card[:type]].include?(:action) && player[:hand].include?(card)
-          }
           self.prompt = {
-            :prompt => "action (#{player[:actions]} left)?",
-            :completions => lambda {|card|
-              [*card[:type]].include?(:action) && player[:hand].include?(card)
-            },
-            :autocomplete => lambda {|input|
-              suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                prompt[:completions][x] && x[:name] =~ /^#{input}/i
+            :prompt      => "action (#{player[:actions]} left)?",
+            :autocomplete => {
+              :card_active => lambda {|card|
+                [*card[:type]].include?(:action) && player[:hand].include?(card)
+              },
+              :strategy => lambda {|input|
+                suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
+                  prompt[:autocomplete][:card_active][x] && x[:name] =~ /^#{input}/i
+                }
+                suggest ? suggest[:name] : nil
               }
-              suggest ? suggest[:name] : nil
             },
             :color  => :green_back,
             :accept => lambda {|input|
@@ -91,19 +90,18 @@ module Dominion
             }
           }
         elsif player[:buys] > 0 # TODO: option to skip copper buys
-          self.card_active = lambda {|card| 
-            card[:cost] <= treasure(player)
-          }
           self.prompt = {
-            :prompt => "buy (#{treasure(player)}/#{player[:buys]} left)?",
-            :completions => lambda {|card| 
-              card[:cost] <= treasure(player)
-            },
-            :autocomplete => lambda {|input|
-              suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
-                prompt[:completions][x] && x[:name] =~ /^#{Regexp.escape(input)}/i
+            :prompt      => "buy (#{treasure(player)}/#{player[:buys]} left)?",
+            :autocomplete => {
+              :card_active => lambda {|card|
+                card[:cost] <= treasure(player)
+              },
+              :strategy => lambda {|input|
+                suggest = input.length == 0 ? nil : board.map(&:first).detect {|x|
+                  prompt[:autocomplete][:card_active][x] && x[:name] =~ /^#{Regexp.escape(input)}/i
+                }
+                suggest ? suggest[:name] : nil
               }
-              suggest ? suggest[:name] : nil
             },
             :color  => :magenta_back,
             :accept => lambda {|input|
