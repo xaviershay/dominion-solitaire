@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Dominion::Game do
   subject do
-    game_with_cards(:copper, :smithy, :chancellor)
+    game_with_cards(:estate, :copper, :smithy, :chancellor)
   end
 
   describe '#step' do
@@ -37,7 +37,31 @@ describe Dominion::Game do
       end
 
       describe 'with no actions and no buys' do
-        it 'cleans up and progresses to the next turn' do
+        before do
+          deck   cards(:estate, 5)
+          hand   cards(:copper, 1)
+          played cards(:smithy, 1)
+
+          player[:actions] = player[:buys] = 0
+
+          subject.step
+        end
+
+        it('resets buys')    { player[:buys   ].should == 1 }
+        it('resets actions') { player[:actions].should == 1 }
+        it('resets gold')    { player[:gold   ].should == 0 }
+        it('increments turn') { subject.turn.should == 2 }
+        
+        it 'moves hand and player to discard' do
+          discard.should have_cards cards(:copper, 1) + cards(:smithy, 1)
+        end
+        
+        it 'empties played' do
+          played.should == []
+        end
+
+        it 'draws five new cards' do
+          hand.should have_cards cards(:estate, 5)
         end
       end
     end

@@ -129,9 +129,12 @@ module Dominion
       player[:discard] += player[:played]
       player[:hand] = []
       player[:played] = []
+
+      # Following three are for logging only
       player[:discarded] = []
       player[:trashed] = []
       player[:bought] = []
+
       5.times { draw_card(player) }
       player[:actions] = 1
       player[:buys]    = 1
