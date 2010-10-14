@@ -5,6 +5,8 @@ module Dominion; module UI; end; end;
 class Dominion::UI::NCurses < Dominion::Engine
   include FFI::NCurses
 
+  attr_accessor :input_buffer
+
   def setup
     super
 
@@ -33,7 +35,7 @@ class Dominion::UI::NCurses < Dominion::Engine
     init_pair(15, Colour::BLACK,   Colour::WHITE)
   end
 
-  def step(ctx)
+  def step(game, ctx)
     ch = wgetch(ctx[:input_window])
 
     if prompt
@@ -137,7 +139,7 @@ print_with_color[:white, "\n"]
           print_with_color[:yellow, card[:cost]]
           print_with_color[:red,    type_char.detect {|x| [*card[:type]].include?(x[0]) }[1]]
           print_with_color[:blue,   '%-2i' % pile.size]
-          if card_active?(card)
+          if game.card_active?(card)
             bold_with_color[:white,  " %-#{max_name_length}s " % card[:name]]
           else
             print_with_color[:white,  " %-#{max_name_length}s " % card[:name]]
@@ -197,7 +199,7 @@ print_with_color[:white, "\n"]
         line_length = 6
         game.player[:hand].each_with_index do |card, index|
           suffix = index == game.player[:hand].length - 1 ? '' : ', '
-          if card_active?(card)
+          if game.card_active?(card)
             bold_with_color[:white, card[:name] + suffix]
           else
             print_with_color[:white, card[:name] + suffix]
@@ -290,9 +292,5 @@ print_with_color[:white, "\n"]
     end
 
     {:input_window => drawn[0][:inner]}
-  end
-
-  def card_active?(card)
-    (self.card_active || lambda { false }).call(card)
   end
 end

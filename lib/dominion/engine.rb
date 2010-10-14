@@ -1,6 +1,6 @@
 module Dominion
   class Engine
-    attr_accessor :prompt, :input_buffer, :card_active
+    attr_accessor :prompt
 
     def setup
       self.prompt = nil

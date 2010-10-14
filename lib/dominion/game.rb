@@ -10,12 +10,20 @@ module Dominion
     include Dominion::Player
     include Dominion::Board
 
-    attr_accessor :engine, :cards, :turn
+    attr_accessor :engine, :cards, :turn, :card_active
 
     def initialize
       self.cards = {}
       self.turn  = 1
       self.engine = Dominion::UI::NCurses.new
+    end
+
+    # An active card is one that can be interacted with. They are generally
+    # highlighted in the UI.
+    #
+    #   card - a hash describing a card
+    def card_active?(card)
+      (self.card_active || proc { false })[card]
     end
 
     def add_card(key, values)
@@ -53,7 +61,7 @@ module Dominion
 
             next if skip
 
-            engine.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
+            self.card_active = lambda {|card| [*card[:type]].include?(:action) && player[:hand].include?(card)}
             engine.prompt = {
               :prompt => "action (#{player[:actions]} left)?",
               :autocomplete => lambda {|input|
@@ -73,7 +81,7 @@ module Dominion
               }
             }
           elsif player[:buys] > 0 # TODO: option to skip copper buys
-            engine.card_active = lambda {|card| 
+            self.card_active = lambda {|card| 
               card[:cost] <= treasure(player)
             }
             engine.prompt = {
@@ -104,7 +112,7 @@ module Dominion
 
         unless skip
           ctx = engine.draw(self)
-          engine.step(ctx)
+          engine.step(self, ctx)
         end
       end
     ensure
