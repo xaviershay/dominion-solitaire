@@ -148,7 +148,7 @@ module Dominion
       buffer << "Trashed: #{format_cards(player[:trashed])}" unless player[:trashed].empty? 
       buffer << "Discarded: #{format_cards(player[:discarded])}" unless player[:discarded].empty? 
       buffer << "Bought: #{format_cards(player[:bought])}" unless player[:bought].empty? 
-      log buffer.join("\n") + "\n"
+      log buffer.join("\n") + "\n\n"
       
       player[:discard] += player[:hand]
       player[:discard] += player[:played]
