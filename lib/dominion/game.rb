@@ -3,12 +3,14 @@ require 'dominion/util'
 require 'dominion/player'
 require 'dominion/board'
 require 'dominion/input'
+require 'dominion/card'
 
 module Dominion
   class Game
     include Dominion::Util
     include Dominion::Player
     include Dominion::Board
+    include Dominion::Card
 
     attr_accessor :engine, :cards, :turn
 
@@ -41,7 +43,7 @@ module Dominion
 
     def treasure(player)
       player[:gold] + player[:hand].select {|x| 
-        x[:type] == :treasure 
+        type?(x, :treasure)
       }.map {|x|
         raise x.inspect unless x[:gold]
         x[:gold] 
@@ -53,7 +55,7 @@ module Dominion
     def step
       skip = false
       if self.prompt.nil?
-        if player[:actions] > 0 && player[:hand].detect {|x| [*x[:type]].include?(:action) }
+        if player[:actions] > 0 && player[:hand].detect {|x| type?(x, :action) }
           # --- AUTOPLAY SECTION
           autoplay = [:village, :market, :laboratory]
           unless player[:hand].detect {|x| x[:key] == :throne_room }
@@ -69,7 +71,7 @@ module Dominion
           self.prompt = {
             :prompt      => "action (#{player[:actions]} left)?",
             :autocomplete => Input::Autocomplete.cards {|card|
-              [*card[:type]].include?(:action) && player[:hand].include?(card)
+              type?(card, :action) && player[:hand].include?(card)
             }[self],
             :color  => :green_back,
             :accept => accept(
