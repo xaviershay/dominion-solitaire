@@ -1,7 +1,6 @@
 module Dominion
   class Engine
     def setup
-      self.input_buffer = ''
     end
 
     def draw(game, ctx = {})

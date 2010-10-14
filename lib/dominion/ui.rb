@@ -10,6 +10,8 @@ class Dominion::UI::NCurses < Dominion::Engine
   def setup
     super
 
+    self.input_buffer = ''
+
     initscr
     start_color
     noecho
