@@ -4,6 +4,7 @@ require 'dominion/player'
 require 'dominion/board'
 require 'dominion/input'
 require 'dominion/card'
+require 'dominion/autoplay'
 
 module Dominion
   class Game
@@ -11,6 +12,7 @@ module Dominion
     include Dominion::Player
     include Dominion::Board
     include Dominion::Card
+    include Dominion::Autoplay
 
     attr_accessor :engine, :cards, :turn, :prompt
 
@@ -24,17 +26,7 @@ module Dominion
       skip = false
       if self.prompt.nil?
         if player[:actions] > 0 && player[:hand].detect {|x| type?(x, :action) }
-          # --- AUTOPLAY SECTION
-          autoplay = [:village, :market, :laboratory]
-          unless player[:hand].detect {|x| x[:key] == :throne_room }
-            while to_play = player[:hand].detect {|x| autoplay.include?(x[:key]) }
-              play_card(player, to_play[:name])
-              skip = true
-            end
-          end
-
-          return if skip
-          # --- END AUTOPLAY
+          return if autoplay!
 
           self.prompt = {
             :prompt      => "action (#{player[:actions]} left)?",
