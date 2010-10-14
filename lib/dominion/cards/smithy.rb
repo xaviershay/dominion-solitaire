@@ -1,5 +1,5 @@
 Dominion::CARDS[:smithy] = {
-  :cost        => 5,
+  :cost        => 4,
   :type        => :action,
   :cards       => 3
 }
