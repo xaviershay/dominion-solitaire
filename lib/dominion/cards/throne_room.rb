@@ -4,7 +4,7 @@ Dominion::CARDS[:throne_room] = {
   :description => 'Choose an action in your hand, play it twice',
   :behaviour   => Dominion::Input.accept_cards(
     :strategy => Dominion::Input::Autocomplete.cards_in_hand(lambda {|card| [*card[:type]].include?(:action) }),
-    :prompt   => lambda {|game, inputs| "action?" % (4 - inputs.length) },
+    :prompt   => lambda {|game, inputs| "action?" },
     :each     => lambda {|game, input| 
       card = game.player[:hand].detect {|x| x[:name] == input }
 
@@ -17,7 +17,6 @@ Dominion::CARDS[:throne_room] = {
         game.move_card(card, game.player[:hand], game.player[:played])
       end
     },
-    :min      => 1,
     :max      => 1
   )
 }

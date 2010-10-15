@@ -52,6 +52,10 @@ Spec::Matchers.define :have_prompt do
   failure_message_for_should do |game|
     "expected a prompt"
   end
+
+  failure_message_for_should_not do |game|
+    "expected no prompt but found: '%s'" % game.prompt[:prompt]
+  end
 end
 
 Spec::Matchers.define :have_cards do |cards|
