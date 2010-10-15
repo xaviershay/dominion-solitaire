@@ -10,12 +10,11 @@ Dominion::CARDS[:remodel] = {
       :max      => 1,
       :after    => lambda {|game, inputs|
         unless inputs.empty?
-          trashed_card = game.player[:hand].detect {|x| x[:name] == inputs.first }
+          trashed_card = game.player[:hand].detect(&by_name(inputs[0]))
           game.move_card(trashed_card, game.player[:hand], game.player[:trash])
 
           Dominion::Input.accept_cards(
-            :strategy => Dominion::Input::Autocomplete.cards {|card| 
-              card[:cost] <= trashed_card[:cost] + 2 },
+            :strategy => Dominion::Input::Autocomplete.cards(&costing_lte(trashed_card[:cost] + 2)),
             :prompt   => lambda {|game, card| "gain card <= #{trashed_card[:cost] + 2}T?" },
             :min      => 1,
             :max      => 1,

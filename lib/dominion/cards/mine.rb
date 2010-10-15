@@ -4,18 +4,19 @@ Dominion::CARDS[:mine] = {
   :description => 'Trash a T, gain a T costing up to +3T more',
   :behaviour   => lambda {|game, card|
     Dominion::Input.accept_cards(
-      :strategy => Dominion::Input::Autocomplete.cards {|c| [*c[:type]].include?(:treasure) },
+      :strategy => Dominion::Input::Autocomplete.cards(&by_type(:treasure)),
       :prompt   => lambda {|game, card| "trash treasure?" },
       :min      => 1,
       :max      => 1,
       :after    => lambda {|game, inputs|
         unless inputs.empty?
-          trashed_card = game.player[:hand].detect {|x| x[:name] == inputs.first }
+          trashed_card = game.player[:hand].detect(&by_name(inputs[0]))
           game.move_card(trashed_card, game.player[:hand], game.player[:trash])
 
           Dominion::Input.accept_cards(
-            :strategy => Dominion::Input::Autocomplete.cards {|card| 
-              card[:cost] <= trashed_card[:cost] + 3 && [*card[:type]].include?(:treasure) },
+            :strategy => Dominion::Input::Autocomplete.cards(&(
+              by_type(:treasure) & costing_lte(trashed_card[:cost] + 3)
+            )),
             :prompt   => lambda {|game, card| "gain treasure <= #{trashed_card[:cost] + 3}T?" },
             :min      => 1,
             :max      => 1,
