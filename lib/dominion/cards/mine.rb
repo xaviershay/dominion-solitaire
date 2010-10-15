@@ -11,7 +11,7 @@ Dominion::CARDS[:mine] = {
       :after    => lambda {|game, inputs|
         unless inputs.empty?
           trashed_card = game.player[:hand].detect(&by_name(inputs[0]))
-          game.move_card(trashed_card, game.player[:hand], game.player[:trash])
+          game.trash_card(game.player, inputs[0])
 
           Dominion::Input.accept_cards(
             :strategy => Dominion::Input::Autocomplete.cards(&(

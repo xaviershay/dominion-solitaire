@@ -1,7 +1,7 @@
 Dominion::CARDS[:remodel] = {
   :type        => :action,
   :cost        => 4,
-  :description => 'Trash a card, gain a card cost up to +2T more',
+  :description => 'Trash a card, gain a card costing up to +2T more',
   :behaviour   => lambda {|game, card|
     Dominion::Input.accept_cards(
       :strategy => Dominion::Input::Autocomplete.cards_in_hand,
