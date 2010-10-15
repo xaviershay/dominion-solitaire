@@ -6,9 +6,24 @@ There's still a few rough edges (don't press the arrow keys, don't buy all of a 
 
 == Running
 
-I haven't totally automated some ncurses stuff yet - you may need the following env settings to get things working
+I haven't totally automated some ncurses stuff yet - you may need the following env settings to get things working:
 
     ls /usr/lib/ | grep libncurses         # Find your libncurses .dylib
     export RUBY_FFI_NCURSES_LIB=libncurses # Tell ffi-ncurses to use the right one
 
     rake run
+
+== The Code
+
+The code is stylistically a bit different from typical ruby code. It is mostly done in a very functional style, so there are a lot of lambdas. The core game logic is in +dominion/game.rb+, and that is a good place to start reading. All UI is abstracted out into +dominion/ui/ncurses/engine.rb+, allowing for a headless mode for testing, and other pluggable UIs in the future. Each card is implemented in its own file in +dominion/cards+, and they are all well specced. (In contrast, the specs for the game logic and ui were retrofitted later and are not as thorough.)
+
+== Extras
+
+To play a specific board, create a text file with one card name per line:
+
+  Chapel
+  Smithy
+
+Then launch the code as such:
+
+  ruby lib/run.rb chapel_smithy_board.txt

@@ -1,7 +1,13 @@
+require 'dominion/card'
+
 module Dominion
-  # Methods to populate the initial board. Requires an accessor +cards+ in
+  # Methods to populate the initial board.
+  #
+  # Requires an accessor +cards+ in
   # the containing class to contain an array of all the loaded cards
   module Board
+    include Dominion::Card
+
     DEFAULT_CARDS = [:copper, :silver, :gold, :estate, :duchy, :provence, :curse]
     DEFAULT_AMOUNT = 8
     AMOUNTS = {
@@ -20,14 +26,6 @@ module Dominion
 
     def card_set
       DEFAULT_CARDS + randomize(cards.keys - DEFAULT_CARDS)[0..9]
-    end
-
-    def card(key)
-      cards[key] || raise("No card #{key}")
-    end
-
-    def card_array(key, number)
-      [card(key)] * number
     end
   end
 end

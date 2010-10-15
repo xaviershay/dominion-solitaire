@@ -15,50 +15,27 @@ end
 Spec::Matchers.define :have_prompt_with_autocomplete do |autocomplete_strategy|
   match do |game|
     case autocomplete_strategy
-    when :cards_in_hand then
-      # TODO: Make this match the :actions_in_hand one
-      game.prompt
-      begin
-        old_player = game.player.dup
+      when :cards_in_hand then
+        to_match = game.player[:hand].uniq
+        to_not_match = (game.board.map(&:first) - to_match).uniq
+      when :actions_in_hand then
+        to_match = game.player[:hand].select {|x| [*x[:type]].include?(:action) }
+        to_not_match = game.player[:hand] - to_match
 
-        game.player[:deck] = [game.card(:estate)]
-        game.player[:hand] = [game.card(:copper)]
-        game.prompt[:autocomplete][:strategy]['co'].should == 'Copper'
-        game.prompt[:autocomplete][:strategy]['es'].should == nil
-        game.prompt[:autocomplete][:strategy]['ce'].should == nil
-      ensure
-        game.player = old_player
-      end
+      when :buyable_cards then
+        cards = game.board.map(&:first)
+        to_match = cards.select {|x| x[:cost] <= game.treasure(game.player) }
+        to_not_match = cards - to_match
+    end
 
-    when :actions_in_hand then
-      to_match = game.player[:hand].select {|x| [*x[:type]].include?(:action) }
-      to_not_match = game.player[:hand] - to_match
+    to_match.each do |card|
+      game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == card[:name]
+      game.prompt[:autocomplete][:card_active][card].should == true
+    end
 
-      to_match.each do |card|
-        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == card[:name]
-        game.prompt[:autocomplete][:card_active][card].should == true
-      end
-
-      to_not_match.each do |card|
-        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == nil
-        game.prompt[:autocomplete][:card_active][card].should == false
-      end
-
-    when :buyable_cards then
-      cards = game.board.map(&:first)
-      to_match = cards.select {|x| x[:cost] <= game.treasure(game.player) }
-      to_not_match = cards - to_match
-
-      to_match.each do |card|
-        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == card[:name]
-        game.prompt[:autocomplete][:card_active][card].should == true
-      end
-
-      to_not_match.each do |card|
-        game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == nil
-        game.prompt[:autocomplete][:card_active][card].should == false
-      end
-
+    to_not_match.each do |card|
+      game.prompt[:autocomplete][:strategy][card[:name][0..2]].should == nil
+      game.prompt[:autocomplete][:card_active][card].should == false
     end
   end
 

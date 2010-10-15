@@ -34,57 +34,52 @@ module Dominion
     end
 
     class Autocomplete
-      def self.cards(&match_func)
-        lambda {|game| {
-          :card_active => lambda {|card|
-            match_func.call(card)
-          },
-          :strategy => lambda {|input|
-            suggest = input.length == 0 ? nil : game.board.map(&:first).detect {|x|
-              match_func.call(x) && x[:name] =~ /^#{input}/i
-            }
-            suggest ? suggest[:name] : nil
-          }
-        }}
+      def self.name_starts_with(input)
+        lambda {|x| x[:name] =~ /^#{input}/i }
       end
 
-      def self.cards_on_board(match_func = lambda {|x| true })
-        lambda {|game|
-          {
-            :card_active => lambda {|card| match_func[card] },
-            :strategy    => lambda {|input|
-              suggest = input.length == 0 ? nil : game.board.detect {|x|
-                x[0][:name] =~ /^#{input}/i && match_func[x[0]]
-              }
-              suggest ? suggest[0][:name] : nil
-            }
+      def self.in_stack(stack)
+        lambda {|card| stack.include?(card) }
+      end
+
+      def self.autocomplete(source, match_func)
+        {
+          :card_active => match_func & in_stack(source),
+          :strategy    => lambda {|input|
+            suggest = input.length == 0 ? nil : source.detect(&(
+              match_func & name_starts_with(input)
+            ))
+            suggest ? suggest[:name] : nil
           }
+        }
+      end
+
+      def self.cards(match_func = nil, &block)
+        if block
+          raise("Can't specify block and lambda") if match_func
+          match_func = block
+        elsif match_func.nil?
+          match_func = lambda {|x| true }
+        end
+
+        lambda {|game|
+          autocomplete(game.board.map(&:first), match_func)
         }
       end
 
       def self.cards_in_hand(match_func = lambda {|x| true })
         lambda {|game|
-          {
-            :card_active => lambda {|card| match_func[card] },
-            :strategy    => lambda {|input|
-              suggest = input.length == 0 ? nil : game.player[:hand].detect {|x|
-                x[:name] =~ /^#{input}/i && match_func[x]
-              }
-              suggest ? suggest[:name] : nil
-            }
-          }
+          autocomplete(game.player[:hand], match_func)
         }
       end
 
       def self.boolean
-        lambda {|game|
-          {
+        lambda {|game| {
             :card_active => lambda {|card| false },
             :strategy    => lambda {|input|
               %w(Y N).detect {|x| x == input.upcase } || nil
             }
-          }
-        }
+        }}
       end
     end
   end

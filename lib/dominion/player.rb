@@ -1,5 +1,10 @@
+require 'dominion/card'
+
 module Dominion
+  # Methods for moving cards around the different areas
   module Player
+    include Dominion::Card
+
     def player=(value)
       @player = value
     end
@@ -17,11 +22,12 @@ module Dominion
         :bought    => [],
         :discarded => [],
         :trashed   => [],
-        :deck      => randomize(
-           [cards[:estate]] * 3 +
-           [cards[:copper]] * 7
-        ).compact
+        :deck      => randomize(default_deck).compact
       }
+    end
+
+    def default_deck
+      card_array(:estate, 3) + card_array(:copper, 7)
     end
 
     def move_card(card, from, to)

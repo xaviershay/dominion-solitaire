@@ -5,14 +5,15 @@ require 'dominion/board'
 require 'dominion/input'
 require 'dominion/card'
 require 'dominion/autoplay'
+require 'core_ext/proc'
 
 module Dominion
   # The main game logic. See #run.
   class Game
+    include Dominion::Card
     include Dominion::Util
     include Dominion::Player
     include Dominion::Board
-    include Dominion::Card
     include Dominion::Autoplay
 
     attr_accessor :engine, :cards, :turn, :prompt
@@ -25,15 +26,14 @@ module Dominion
 
     def step
       skip = false
+
       if self.prompt.nil?
-        if player[:actions] > 0 && player[:hand].detect {|x| type?(x, :action) }
+        if player[:actions] > 0 && player[:hand].detect(&by_type(:action))
           return if autoplay!
 
           self.prompt = {
             :prompt      => "action (#{player[:actions]} left)?",
-            :autocomplete => Input::Autocomplete.cards {|card|
-              type?(card, :action) && player[:hand].include?(card)
-            }[self],
+            :autocomplete => Input::Autocomplete.cards(&(by_type(:action) & in_hand))[self],
             :color  => :green_back,
             :accept => accept(
               :accept  => lambda {|input| play_card(player, input) },
