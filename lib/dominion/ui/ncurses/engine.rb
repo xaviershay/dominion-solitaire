@@ -16,7 +16,7 @@ require 'dominion/ui/ncurses/input_window'
 module Dominion::UI::NCurses
   class Engine < Dominion::Engine
     include FFI::NCurses
-    include Colour
+    include Color
 
     attr_accessor :input_buffer
 
@@ -55,7 +55,7 @@ module Dominion::UI::NCurses
           self.input_buffer = input_buffer[0..-2]
         else
           if ch.chr =~ /^[a-z ]+$/i
-            self.input_buffer += ch.chr 
+            self.input_buffer += ch.chr
           end
         end
       end
@@ -69,7 +69,7 @@ module Dominion::UI::NCurses
       ctx[:windows] ||= {}
       curs_set 0
       refresh
-     
+
       drawn = [
         BoardWindow.new(game),
         PlayAreaWindow.new(game),
