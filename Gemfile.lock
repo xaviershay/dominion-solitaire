@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    ffi (1.9.6)
+    ffi (1.17.0)
     ffi-locale (1.0.1)
       ffi (>= 1.0.9)
     ffi-ncurses (0.4.0)
@@ -14,3 +14,6 @@ PLATFORMS
 DEPENDENCIES
   ffi
   ffi-ncurses
+
+BUNDLED WITH
+   2.4.5
